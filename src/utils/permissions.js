@@ -38,6 +38,10 @@ export function canUserEditVmStorage (permits: Set<string>): boolean {
   return checkUserPermit('configure_vm_storage', permits)
 }
 
+export function canUserUseConsole (permits: Set<string>): boolean {
+  return checkUserPermit('connect_to_vm', permits)
+}
+
 export function canUserEditDisk (permits: Set<string>): boolean {
   return checkUserPermit('edit_disk_properties', permits)
 }

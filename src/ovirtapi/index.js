@@ -56,6 +56,8 @@ const OvirtApi = {
 
   eventToInternal: Transforms.Event.toInternal,
 
+  userToInternal: Transforms.User.toInternal,
+
   //
   //
   // ---- API interaction functions
@@ -66,12 +68,14 @@ const OvirtApi = {
     const url = `${AppConfiguration.applicationContext}/api/`
     return httpGet({ url })
   },
-
   icon ({ id }: { id: string }): Promise<Object> {
     assertLogin({ methodName: 'icon' })
     return httpGet({ url: `${AppConfiguration.applicationContext}/api/icons/${id}` })
   },
-
+  user ({ userId }: { userId: string }): Promise<Object> {
+    assertLogin({ methodName: 'user' })
+    return httpGet({ url: `${AppConfiguration.applicationContext}/api/users/${userId}` })
+  },
   groups ({ userId }: { userId: string }): Promise<Object> {
     assertLogin({ methodName: 'groups' })
     return httpGet({ url: `${AppConfiguration.applicationContext}/api/users/${userId}/groups` })

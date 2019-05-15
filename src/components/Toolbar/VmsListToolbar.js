@@ -66,7 +66,9 @@ const VmsListToolbar = ({ match, vms, onRemoveFilter, onClearFilters }) => {
     <Toolbar className={style['full-width']}>
       <VmFilter />
       <VmSort />
+      <div id='select-all-vms-btn-box' />
       <Toolbar.RightContent>
+        <div id='vm-settings-btn-box' />
         <AddVmButton key='addbutton' id='route-add-vm' />
       </Toolbar.RightContent>
       <Toolbar.Results>

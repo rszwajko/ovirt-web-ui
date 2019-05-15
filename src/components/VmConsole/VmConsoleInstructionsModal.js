@@ -1,6 +1,7 @@
 import React from 'react'
 import { Icon, Modal, Button } from 'patternfly-react'
 import style from './style.css'
+import sharedStyle from '_/components/sharedStyle.css'
 import { msg } from '../../intl'
 import PropTypes from 'prop-types'
 
@@ -23,7 +24,7 @@ class VmConsoleInstructionsModal extends React.Component {
   render () {
     const { disabled } = this.props
     return <div className={style['console-modal-box']}>
-      <Button bsStyle='link' onClick={this.open} className={style['color-blue']} disabled={disabled}>
+      <Button bsStyle='link' onClick={this.open} className={sharedStyle['color-blue']} disabled={disabled}>
         { msg.consoleInstructions() }
       </Button>
 

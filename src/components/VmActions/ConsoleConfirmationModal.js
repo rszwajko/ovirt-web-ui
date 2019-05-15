@@ -19,7 +19,7 @@ class ConsoleConfirmationModal extends React.Component {
     this.checkConsoleInUseSended = false
     this.onConsoleConfirmationClose = this.onConsoleConfirmationClose.bind(this)
     this.onConsoleDownload = this.onConsoleDownload.bind(this)
-    this.modalId = generateUnique(`${props.vm.get('id')} ${props.consoleId}`)
+    this.modalId = props.modalId || generateUnique(`${props.vm.get('id')} ${props.consoleId}`)
     if (props.show) {
       props.onOpen({
         usbAutoshare: props.config.get('usbAutoshare'),
@@ -41,14 +41,14 @@ class ConsoleConfirmationModal extends React.Component {
       })
     } else {
       if (this.props.consoles.getIn(['modals', this.modalId, 'state']) === undefined) {
-        this.props.onClose()
+        this.props.onClose && this.props.onClose()
       }
     }
   }
 
   onConsoleConfirmationClose () {
     this.props.onConsoleSessionConfirmaClose({ modalId: this.modalId })
-    this.props.onClose()
+    this.props.onClose && this.props.onClose()
   }
 
   onConsoleDownload (skipSSO = false) {
@@ -100,12 +100,13 @@ ConsoleConfirmationModal.propTypes = {
   consoles: PropTypes.object.isRequired,
   config: PropTypes.object.isRequired,
   show: PropTypes.bool,
+  modalId: PropTypes.string,
   isNoVNC: PropTypes.bool, // eslint-disable-line react/no-unused-prop-types
   isConsolePage: PropTypes.bool, // eslint-disable-line react/no-unused-prop-types
   consoleId: PropTypes.string, // eslint-disable-line react/no-unused-prop-types
   onDownloadConsole: PropTypes.func.isRequired,
   onConsoleSessionConfirmaClose: PropTypes.func.isRequired,
-  onClose: PropTypes.func.isRequired,
+  onClose: PropTypes.func,
   onOpen: PropTypes.func.isRequired,
 }
 

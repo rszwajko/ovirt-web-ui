@@ -1,15 +1,20 @@
 
-export function adjustVVFile ({ data, options, usbAutoshare, usbFilter }) {
+import { select } from 'redux-saga/effects'
+
+export function* adjustVVFile ({ data, usbAutoshare, usbFilter, vmId }) {
+  const options = yield select(state => state.options)
   // __options__ can either be a plain JS object or ImmutableJS Map
   console.log('adjustVVFile options:', options)
-
-  if (options && ((options.get && options.get('fullscreen')) || options.fullscreen)) {
+  const globalOptions = options.get('global')
+  const vmOptions = options.getIn(['vms', vmId])
+  const usedOptions = vmOptions || globalOptions
+  if (usedOptions.get('fullScreenMode')) {
     data = data.replace(/^fullscreen=0/mg, 'fullscreen=1')
   }
 
   const pattern = /^secure-attention=.*$/mg
   let text = 'secure-attention=ctrl+alt+del'
-  if (options && ((options.get && options.get('ctrlAltDelToEnd')) || options.ctrlAltDelToEnd)) {
+  if (usedOptions.get('ctrlAltDel')) {
     text = 'secure-attention=ctrl+alt+end'
   }
   if (data.match(pattern)) {
@@ -28,7 +33,7 @@ export function adjustVVFile ({ data, options, usbAutoshare, usbFilter }) {
   }
 
   if (options && isSpice) {
-    const smartcardEnabled = options.get ? options.get('smartcardEnabled') : options.smartcardEnabled
+    const smartcardEnabled = usedOptions.get('smartcard')
     data = data.replace(/^enable-smartcard=[01]$/mg, `enable-smartcard=${smartcardEnabled ? 1 : 0}`)
   }
 

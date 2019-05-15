@@ -25,6 +25,7 @@ import type {
   ApiPermissionType, PermissionType,
   ApiEventType, EventType,
   ApiRoleType, RoleType,
+  ApiUserType, UserType,
 } from './types'
 
 import { isWindows } from '_/helpers'
@@ -181,6 +182,7 @@ const VM = {
       canUserEditVm: false,
       canUserManipulateSnapshots: false,
       canUserEditVmStorage: false,
+      canUserUseConsole: false,
     }
 
     if (vm.cdroms && vm.cdroms.cdrom) {
@@ -948,6 +950,19 @@ const Event = {
   toApi: undefined,
 }
 
+const User = {
+  toInternal ({ user }: { user: ApiUserType }): UserType {
+    return {
+      userName: user.user_name,
+      lastName: user.last_name,
+      email: user.email,
+      principal: user.principal,
+    }
+  },
+
+  toApi: undefined,
+}
+
 //
 // Export each transforms individually so they can be consumed individually
 //
@@ -975,4 +990,5 @@ export {
   Permissions,
   Event,
   Role,
+  User,
 }

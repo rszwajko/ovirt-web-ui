@@ -10,6 +10,7 @@ import OvirtApiCheckFailed from './components/OvirtApiCheckFailed'
 import SessionActivityTracker from './components/SessionActivityTracker'
 import VmsPageHeader from './components/VmsPageHeader'
 import ToastNotifications from './components/ToastNotifications'
+import ConsoleConfirmationModal from '_/components/VmActions/ConsoleConfirmationModal'
 
 import getRoutes from './routes'
 import { fixedStrings } from './branding'
@@ -45,6 +46,37 @@ function isBrowserUnsupported () {
   return (navigator.userAgent.indexOf('MSIE') !== -1) || (!!document.documentMode === true)
 }
 
+const ConsoleConfirmationOpener = ({ consoles, vms }) => (
+  <React.Fragment>
+    {
+      consoles.get('modals')
+        .filter((v, k) => k.startsWith('autoconnect-confirmation'))
+        .map((v, k) => {
+          console.log(v.get('vmId'), vms.getIn(['vms', v.get('vmId')]))
+          return <ConsoleConfirmationModal
+            key={k}
+            consoleId={v.get('consoleId')}
+            vm={vms.getIn(['vms', v.get('vmId')])}
+            modalId={k}
+            show
+          />
+        }).toList().toJS()
+    }
+  </React.Fragment>
+)
+
+ConsoleConfirmationOpener.propTypes = {
+  consoles: PropTypes.object.isRequired,
+  vms: PropTypes.object.isRequired,
+}
+
+const ConsoleConfirmationOpenerConnected = connect(
+  (state) => ({
+    consoles: state.consoles,
+    vms: state.vms,
+  })
+)(ConsoleConfirmationOpener)
+
 /**
  * Main App component. Wrap the main react-router components together with
  * the various dialogs and error messages that may be needed.
@@ -65,6 +97,7 @@ const App = ({ history, config, appReady, activateSessionTracker }) => {
         <OvirtApiCheckFailed />
         <LoadingData />
         <ToastNotifications />
+        <ConsoleConfirmationOpenerConnected />
         { appReady && activateSessionTracker && <SessionActivityTracker /> }
         { appReady && renderRoutes(getRoutes()) }
       </div>

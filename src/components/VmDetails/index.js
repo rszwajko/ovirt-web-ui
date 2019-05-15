@@ -1,5 +1,6 @@
 import React from 'react'
 import PropTypes from 'prop-types'
+import { connect } from 'react-redux'
 import { Alert, Card, CardBody } from 'patternfly-react'
 import { msg } from '_/intl'
 
@@ -48,16 +49,18 @@ class VmDetailsContainer extends React.Component {
   }
 
   render () {
-    const { vm } = this.props
-
+    const { vm, options } = this.props
+    const usedOptions = options.getIn(['vms', vm.get('id')]) || options.get('global')
     return (
       <Grid className={styles['details-container']}>
-        <NavigationPrompt when={this.state.anyDirtyEdit}>
-          {({ isActive, onConfirm, onCancel }) => (
-            <NavigationConfirmationModal show={isActive} onYes={onConfirm} onNo={onCancel} />
-          )}
-        </NavigationPrompt>
-
+        {
+          usedOptions.get('displayUnsavedWarnings') &&
+          <NavigationPrompt when={this.state.anyDirtyEdit}>
+            {({ isActive, onConfirm, onCancel }) => (
+              <NavigationConfirmationModal show={isActive} onYes={onConfirm} onNo={onCancel} />
+            )}
+          </NavigationPrompt>
+        }
         {vm.get('nextRunExists') &&
           <Row>
             <Col>
@@ -88,6 +91,11 @@ class VmDetailsContainer extends React.Component {
 }
 VmDetailsContainer.propTypes = {
   vm: PropTypes.object,
+  options: PropTypes.object.isRequired,
 }
 
-export default VmDetailsContainer
+export default connect(
+  (state) => ({
+    options: state.options,
+  }),
+  null)(VmDetailsContainer)

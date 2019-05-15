@@ -29,3 +29,8 @@
   overflow: auto;
   max-height: 600px;
 }
+
+:global(#select-all-vms-btn-box) {
+  margin-left: 10px;
+  display: inline-block;
+}

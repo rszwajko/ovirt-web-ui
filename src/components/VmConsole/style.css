@@ -10,10 +10,6 @@
     display: flex;
 }
 
-:global(.toolbar-pf .form-group) .color-blue {
-    color: #0088ce;
-}
-
 .console-detail-container dt {
     clear: left;
     float: left;

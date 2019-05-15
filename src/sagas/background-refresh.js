@@ -1,3 +1,4 @@
+import { refreshUserSettingsPage } from './options'
 import {
   all,
   call,
@@ -23,9 +24,9 @@ import {
   fetchSinglePool,
   fetchSingleVm,
   fetchVms,
+  fetchVmsByIds,
   selectVmDetail,
 } from './index'
-import { getConsoleOptions } from './console'
 import { fetchIsoFiles } from './storageDomains'
 
 /**
@@ -65,6 +66,9 @@ const pagesRefreshers = {
   [C.DETAIL_PAGE_TYPE]: refreshDetailPage,
   [C.CREATE_PAGE_TYPE]: refreshCreatePage,
   [C.CONSOLE_PAGE_TYPE]: refreshConsolePage,
+  [C.SETTINGS_PAGE_TYPE]: refreshUserSettingsPage,
+  [C.VM_SETTINGS_PAGE_TYPE]: refreshVmSettingsPage,
+
 }
 
 function* getIdsByType (type) {
@@ -143,9 +147,13 @@ function* refreshListPage ({ shallowFetch, onNavigation, onSchedule }) {
   yield put(Actions.updateVmsPoolsCount())
 }
 
+function* refreshVmSettingsPage ({ id }) {
+  const ids = id.split('/')
+  yield fetchVmsByIds({ ids })
+}
+
 function* refreshDetailPage ({ id, onNavigation, onSchedule }) {
   yield selectVmDetail(Actions.selectVmDetail({ vmId: id }))
-  yield getConsoleOptions(Actions.getConsoleOptions({ vmId: id }))
 
   // Load ISO images on manual refresh click only
   if (!onNavigation && !onSchedule) {
@@ -207,6 +215,17 @@ function* schedulerWithFixedDelay (delayInSeconds = AppConfiguration.schedulerFi
       enabled = false
       console.log(`⏰ schedulerWithFixedDelay[${myId}] 🡒 scheduler has been stopped due to SSO token expiration`)
       continue
+    }
+
+    const dontDisturb = yield select(state => state.options.getIn(['global', 'dontDisturb']))
+    const dontDisturbFor = yield select(state => state.options.getIn(['global', 'dontDisturbFor']))
+    const dontDisturbStart = yield select(state => state.options.getIn(['global', 'dontDisturbStart']))
+
+    if (dontDisturb) {
+      const remain = Date.now() - (dontDisturbStart + (dontDisturbFor * 60 * 1000))
+      if (remain > 0) {
+        yield put(Actions.saveOption({ key: 'dontDisturb', value: false }))
+      }
     }
 
     const oVirtVersion = yield select(state => state.config.get('oVirtApiVersion'))

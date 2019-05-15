@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import PropTypes from 'prop-types'
 import { connect } from 'react-redux'
 import { msg } from '_/intl'
@@ -8,6 +8,7 @@ import { filterVms, sortFunction } from '_/utils'
 import useInfiniteScroll from '@closeio/use-infinite-scroll'
 import Vm from './Vm'
 import Pool from './Pool'
+import { VmsSettingsButton, SelectAllVmsButton } from './SettingsButton'
 
 import style from './style.css'
 
@@ -16,6 +17,22 @@ import style from './style.css'
  * available to the current user.
  */
 const VmCardList = ({ vms, alwaysShowPoolCard, fetchMoreVmsAndPools }) => {
+  const [checkedVms, setCheckedVms] = useState(new Set())
+
+  const checkVm = (vmId) => {
+    const copy = new Set(checkedVms)
+    if (!copy.has(vmId)) {
+      copy.add(vmId)
+    } else {
+      copy.delete(vmId)
+    }
+    setCheckedVms(copy)
+  }
+
+  const selectAll = () => {
+    setCheckedVms(new Set(vms.get('vms').keySeq().toJS()))
+  }
+
   const sort = vms.get('sort').toJS()
   const filters = vms.get('filters').toJS()
 
@@ -72,11 +89,17 @@ const VmCardList = ({ vms, alwaysShowPoolCard, fetchMoreVmsAndPools }) => {
 
   return (
     <div className={style['scroll-container-wrapper']}>
+      <VmsSettingsButton checkedVms={Array.from(checkedVms)} />
+      <SelectAllVmsButton onClick={selectAll} />
       <div ref={scrollerRef} className={`container-fluid container-cards-pf ${style['scroll-container']}`}>
         <div className={`row row-cards-pf ${style['cards-container']}`}>
           {vmsAndPools.map(entity =>
             entity.get('isVm')
-              ? <Vm vm={entity} key={entity.get('id')} />
+              ? <Vm
+                vm={entity} key={entity.get('id')}
+                checked={checkedVms.has(entity.get('id'))}
+                onCheck={() => checkVm(entity.get('id'))}
+              />
               : <Pool pool={entity} key={entity.get('id')} />
           )}
         </div>

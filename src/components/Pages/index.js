@@ -9,6 +9,7 @@ import VmsList from '../VmsList'
 import VmDetails from '../VmDetails'
 import VmConsole from '../VmConsole'
 import Handler404 from '_/Handler404'
+import { GlobalSettings, VmSettings } from '../UserSettings'
 
 /**
  * Route component (for PageRouter) to view the list of VMs and Pools
@@ -16,6 +17,56 @@ import Handler404 from '_/Handler404'
 const VmsListPage = () => {
   return <VmsList />
 }
+
+const GlobalSettingsPage = () => {
+  return <GlobalSettings />
+}
+
+class VmSettingsPage extends React.Component {
+  constructor (props) {
+    super(props)
+    this.state = {
+      vmIds: [],
+    }
+  }
+
+  static getDerivedStateFromProps (props, state) {
+    const ids = props.match.params.id.split('/')
+    if (ids.filter(n => !state.vmIds.includes(n)).length > 0) {
+      return { vmIds: ids }
+    }
+
+    return null
+  }
+
+  render () {
+    const { vms, route } = this.props
+    const { vmIds } = this.state
+
+    if (vmIds.length > 0 && vmIds.filter(n => !vms.get('vms').keySeq().includes(n)).length === 0) {
+      return (<VmSettings selectedVms={vmIds} {...route.pageProps} />)
+    }
+
+    const inersection = vmIds.filter(n => vms.get('missedVms').has(n))
+    if (inersection.length > 0) {
+      console.info(`VmSettingsPage: VM ids cannot be found: ${inersection.join(', ')}`)
+      return <Handler404 />
+    }
+
+    return null
+  }
+}
+
+VmSettingsPage.propTypes = {
+  vms: PropTypes.object.isRequired,
+  route: PropTypes.object.isRequired,
+  match: RouterPropTypeShapes.match.isRequired,
+}
+const VmSettingsPageConnected = connect(
+  (state) => ({
+    vms: state.vms,
+  }),
+)(VmSettingsPage)
 
 /**
  * Route component (for PageRouter) to view a VM's details
@@ -105,4 +156,6 @@ export {
   VmConsolePageConnected as VmConsolePage,
   VmDetailsPageConnected as VmDetailsPage,
   VmsListPage,
+  GlobalSettingsPage,
+  VmSettingsPageConnected as VmSettingsPage,
 }

@@ -229,3 +229,8 @@ a.disabled {
 textarea {
   resize: vertical;
 }
+
+.toolbar-pf-action-right > div {
+  display: inline-block;
+  margin-left: 5px;
+}

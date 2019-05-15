@@ -30,7 +30,7 @@ function assertLogin ({ methodName }: { methodName: string }) {
 //
 // HTTP Listener Handling
 //
-type MethodType = 'GET' | 'POST' | 'PUT' | 'DELETE'
+type MethodType = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'HEAD'
 type ListenerType = (requestId: Object, eventType: 'START' | 'STOP') => void
 
 const listeners: Set<ListenerType> = new Set()

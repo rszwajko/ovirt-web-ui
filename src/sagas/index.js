@@ -1,3 +1,4 @@
+import settingsSagas from './options'
 import {
   all,
   call,
@@ -15,7 +16,6 @@ import { saveToLocalStorage } from '_/storage'
 import sagasRefresh from './background-refresh'
 import sagasDisks from './disks'
 import sagasLogin from './login'
-import sagasOptionsDialog from '_/components/OptionsDialog/sagas'
 import sagasRoles from './roles'
 import sagasStorageDomains from './storageDomains'
 import sagasVmChanges from './vmChanges'
@@ -29,6 +29,7 @@ import {
   vmActionInProgress,
 
   getSingleVm,
+  setUser,
   setVmSnapshots,
 
   setUserMessages,
@@ -60,8 +61,6 @@ import { fetchUnknownIcons } from './osIcons'
 
 import {
   downloadVmConsole,
-  getConsoleOptions,
-  saveConsoleOptions,
   getRDPVm,
   openConsoleModal,
 } from './console'
@@ -78,11 +77,10 @@ import {
   EDIT_VM_NIC,
   GET_ALL_EVENTS,
   GET_BY_PAGE,
-  GET_CONSOLE_OPTIONS,
   GET_POOLS,
   GET_RDP_VM,
+  GET_USER,
   GET_VMS,
-  SAVE_CONSOLE_OPTIONS,
   SAVE_FILTERS,
   SELECT_POOL_DETAIL,
   SELECT_VM_DETAIL,
@@ -95,6 +93,7 @@ import {
   canUserEditVm,
   canUserEditVmStorage,
   canUserManipulateSnapshots,
+  canUserUseConsole,
 } from '_/utils'
 import AppConfiguration from '_/config'
 
@@ -123,11 +122,23 @@ export function* transformAndPermitVm (vm) {
   internalVm.canUserEditVm = canUserEditVm(internalVm.userPermits)
   internalVm.canUserManipulateSnapshots = canUserManipulateSnapshots(internalVm.userPermits)
   internalVm.canUserEditVmStorage = canUserEditVmStorage(internalVm.userPermits)
+  internalVm.canUserUseConsole = canUserUseConsole(internalVm.userPermits)
 
   return internalVm
 }
 
-function* putPermissionsInDisk (disk) {
+export function* fetchVmsByIds ({ ids }) {
+  const allVms = yield callExternalAction('getVmsByIds', Api.getVmsByIds, { payload: { ids } })
+  const fetchedVmIds = []
+  if (allVms && allVms['vm']) { // array
+    const internalVms = allVms.vm.map(vm => Api.vmToInternal({ vm }))
+    internalVms.forEach(vm => fetchedVmIds.push(vm.id))
+
+    yield put(updateVms({ vms: internalVms }))
+  }
+}
+
+export function* putPermissionsInDisk (disk) {
   disk.permits = yield fetchPermits({ entityType: PermissionsType.DISK_TYPE, id: disk.id })
   disk.canUserEditDisk = canUserEditDisk(disk.permits)
   return disk
@@ -268,6 +279,19 @@ export function* fetchPools (action) {
   }
 
   return fetchedPoolIds
+}
+
+export function* fetchCurrentUser () {
+  const user = yield callExternalAction('user', Api.user, {
+    payload: {
+      userId: yield select((state) => state.config.getIn(['user', 'id'])),
+    },
+  })
+
+  if (user) {
+    const internalUser = Api.userToInternal({ user })
+    yield put(setUser({ user: internalUser }))
+  }
 }
 
 export function* fetchSinglePool (action) {
@@ -552,6 +576,7 @@ export function* rootSaga () {
     throttle(100, GET_BY_PAGE, fetchByPage),
     throttle(100, GET_VMS, fetchVms),
     throttle(100, GET_POOLS, fetchPools),
+    takeLatest(GET_USER, fetchCurrentUser),
 
     takeLatest(GET_ALL_EVENTS, fetchAllEvents),
     takeEvery(DISMISS_EVENT, dismissEvent),
@@ -565,8 +590,6 @@ export function* rootSaga () {
     takeEvery(DELETE_VM_NIC, deleteVmNic),
     takeEvery(EDIT_VM_NIC, editVmNic),
 
-    takeEvery(GET_CONSOLE_OPTIONS, getConsoleOptions),
-    takeEvery(SAVE_CONSOLE_OPTIONS, saveConsoleOptions),
     takeEvery(OPEN_CONSOLE_MODAL, openConsoleModal),
     takeEvery(DOWNLOAD_CONSOLE_VM, downloadVmConsole),
     takeEvery(GET_RDP_VM, getRDPVm),
@@ -575,9 +598,9 @@ export function* rootSaga () {
 
     // Sagas from Components
     ...sagasDisks,
-    ...sagasOptionsDialog,
     ...sagasRoles,
     ...sagasStorageDomains,
+    ...settingsSagas,
     ...sagasVmChanges,
     ...sagasVmSnapshots,
   ])

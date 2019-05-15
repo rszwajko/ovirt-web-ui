@@ -83,6 +83,8 @@
         <servlet-name>logout</servlet-name>
         <servlet-class>org.ovirt.engine.core.aaa.servlet.SsoLogoutServlet</servlet-class>
     </servlet>
+        <url-pattern>/settings/*</url-pattern>
+        <url-pattern>/vms-settings/*</url-pattern>
     <servlet-mapping>
         <servlet-name>logout</servlet-name>
         <url-pattern>/sso/logout</url-pattern>

@@ -84,3 +84,11 @@
 .text-align-left {
   text-align: left;
 }
+
+:global(.toolbar-pf .form-group) .color-blue {
+    color: #0088ce;
+}
+
+.settings-icon span {
+    margin-right: 5px;
+}

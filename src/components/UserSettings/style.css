@@ -1,0 +1,24 @@
+.scrolling-viewport {
+    max-height: 50vh;
+    overflow: auto;
+}
+
+.filter-vms-box {
+	margin-right: 20px;
+    margin-bottom: 10px;
+}
+
+.vms-settings-box {
+    display: flex;
+}
+
+.vms-card {
+    margin-left: 20px;
+    margin-top: 20px;
+    flex-grow: 1;
+    overflow: hidden;
+}
+
+.half-width {
+    width: 50%;
+}

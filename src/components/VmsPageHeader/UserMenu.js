@@ -6,7 +6,6 @@ import { logout } from '_/actions'
 
 import { msg } from '_/intl'
 import AboutDialog from '../About'
-import OptionsDialog from '../OptionsDialog'
 import OverlayTooltip from '_/components/OverlayTooltip'
 
 const UserMenu = ({ config, onLogout }) => {
@@ -19,9 +18,6 @@ const UserMenu = ({ config, onLogout }) => {
         </a>
       </OverlayTooltip>
       <ul className='dropdown-menu'>
-        <li>
-          <OptionsDialog userId={config.getIn(['user', 'id'])} />
-        </li>
         <li>
           <AboutDialog />
         </li>

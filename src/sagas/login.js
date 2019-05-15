@@ -4,7 +4,6 @@ import pick from 'lodash/pick'
 import Product from '_/version'
 import Api from '_/ovirtapi'
 import AppConfiguration from '_/config'
-import OptionsManager from '_/optionsManager'
 
 import {
   loginSuccessful,
@@ -27,11 +26,8 @@ import {
   getAllVnicProfiles,
   getRoles,
   getUserGroups,
+  getUser,
 
-  downloadConsole,
-  getSingleVm,
-
-  updateVms,
   saveVmsFilters,
 } from '_/actions'
 
@@ -50,12 +46,13 @@ import {
   fetchAllTemplates,
   fetchUserGroups,
 } from './base-data'
-import { downloadVmConsole } from './console'
 import { fetchRoles } from './roles'
 import { fetchServerConfiguredValues } from './server-configs'
 import { fetchDataCentersAndStorageDomains, fetchIsoFiles } from './storageDomains'
 import { loadIconsFromLocalStorage } from './osIcons'
-import { transformAndPermitVm } from './index'
+import {
+  fetchCurrentUser,
+} from './index'
 
 import { loadFromLocalStorage } from '_/storage'
 
@@ -113,7 +110,6 @@ function* login (action) {
   // user interaction (scrolling) on the `Vms` card view component.
 
   yield put(appConfigured())
-  yield autoConnectCheck()
   yield put(getAllEvents())
 }
 
@@ -200,6 +196,7 @@ function* initialLoad () {
   yield all([
     call(loadIconsFromLocalStorage),
     call(fetchRoles, getRoles()),
+    call(fetchCurrentUser, getUser()),
     call(fetchUserGroups, getUserGroups()),
     call(fetchAllOS, getAllOperatingSystems()),
     call(fetchAllHosts, getAllHosts()),
@@ -226,20 +223,6 @@ function* initialLoad () {
   console.groupEnd('needs storage domains')
 
   // Vms and Pools are loaded as needed / accessed
-}
-
-function* autoConnectCheck () {
-  const vmId = OptionsManager.loadAutoConnectOption()
-  if (vmId && vmId.length > 0) {
-    const vm = yield callExternalAction('getVm', Api.getVm, getSingleVm({ vmId }), true)
-    if (vm && vm.error && vm.error.status === 404) {
-      OptionsManager.clearAutoConnect()
-    } else if (vm && vm.id && vm.status !== 'down') {
-      const internalVm = yield transformAndPermitVm(vm)
-      yield put(updateVms({ vms: [internalVm] }))
-      yield downloadVmConsole(downloadConsole({ vmId, hasGuestAgent: internalVm.ssoGuestAgent }))
-    }
-  }
 }
 
 export default [

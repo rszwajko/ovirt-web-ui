@@ -122,6 +122,12 @@ dl.pool-info dd {
     height: calc(100% - 20px);
 }
 
+.vm-checkbox {
+    margin-left: 30px;
+    position: absolute;
+    margin-top: 20px;
+}
+
 .infinite-scroll-sentinel {
     width: 100%;
     text-align: center;
