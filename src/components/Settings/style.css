@@ -1,0 +1,39 @@
+.settings-box {
+	display: flex;
+	margin-top: 20px;
+}
+
+.navigation-content {
+	padding: 0;
+    margin-right: 30px;
+    display: table;
+}
+
+.search-content-box {
+    flex-grow: 1;
+}
+
+.main-content {
+    margin-top: 20px;
+    margin-left: 0;
+    margin-right: 0;
+}
+
+.main-content-container {
+    display: grid;
+}
+
+.field-label {
+	text-align: right;
+}
+
+.settings-field {
+    padding-top: 20px;
+    padding-bottom: 20px;
+    border-bottom: solid 1px #0000001f;
+    margin-left: -20px;
+    margin-right: -20px;
+    padding-left: 20px;
+    padding-right: 20px;
+    margin-bottom: 0;
+}

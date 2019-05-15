@@ -157,6 +157,9 @@ export type VmConsolesType = Object
 export type ApiVmSessionsType = Object
 export type VmSessionsType = Object
 
+export type ApiUserType = Object
+export type UserType = Object
+
 export type ApiPermissionType = {
   role: {
     name: string,

@@ -17,15 +17,19 @@ import huLocalData from 'react-intl/locale-data/hu'
 import heLocalData from 'react-intl/locale-data/he'
 
 import { messages, type MessageIdType, type MessageType } from './messages'
+import { loadFromLocalStorage } from '_/storage'
+
 // expected translations ['de', 'fr', 'es', 'ko', 'it', 'ja', 'pt-BR', 'ru', 'zh-CN']
 import translatedMessages from './translated-messages.json'
 
 const DEFAULT_LOCALE = 'en'
 
+const options = JSON.parse(loadFromLocalStorage('options')) || {}
+
 /**
  * Currently selected locale
  */
-export const locale: string = getLocaleFromUrl() || getBrowserLocale() || DEFAULT_LOCALE
+export const locale: string = getLocaleFromUrl() || options.options.language || getBrowserLocale() || DEFAULT_LOCALE
 
 function getBrowserLocale (): ?string {
   if (window.navigator.language) {
@@ -196,6 +200,48 @@ export const localeDataMap = {
   hu: huLocalData,
   he: heLocalData,
 }
+
+export const localeWithFullName = [
+  {
+    id: 'en', value: 'English',
+  },
+  {
+    id: 'de', value: 'Deutsch',
+  },
+  {
+    id: 'fr', value: 'Français',
+  },
+  {
+    id: 'es', value: 'Español',
+  },
+  {
+    id: 'ko', value: '한국어',
+  },
+  {
+    id: 'it', value: 'Italiano',
+  },
+  {
+    id: 'ja', value: '日本語',
+  },
+  {
+    id: 'pt-BR', value: 'Português',
+  },
+  {
+    id: 'ru', value: 'Русский',
+  },
+  {
+    id: 'zh-CN', value: '中文',
+  },
+  {
+    id: 'cs', value: 'Čeština',
+  },
+  {
+    id: 'hu', value: 'Magyar',
+  },
+  {
+    id: 'he', value: 'עברית',
+  },
+]
 
 function initializeReactIntl () {
   const selectedLocalData = localeDataMap[locale]

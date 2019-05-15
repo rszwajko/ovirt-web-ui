@@ -24,6 +24,7 @@ import type {
   ApiVnicProfileType, VnicProfileType,
   ApiPermissionType, PermissionType,
   ApiEventType, EventType,
+  ApiUserType, UserType,
 } from './types'
 
 import {
@@ -34,6 +35,7 @@ import {
   getUserPermits,
   canUserUseVnicProfile,
   canUserManipulateSnapshots,
+  canUserUseConsole,
 } from '../utils'
 
 function vCpusCount ({ cpu }: { cpu: Object }): number {
@@ -167,6 +169,7 @@ const VM = {
       canUserChangeCd: true,
       canUserEditVm: false,
       canUserManipulateSnapshots: false,
+      canUserUseConsole: false,
 
       ssoGuestAgent: vm.sso.methods && vm.sso.methods.method && vm.sso.methods.method.length > 0 && vm.sso.methods.method.findIndex(method => method.id === 'guest_agent') > -1,
       display: {
@@ -223,6 +226,7 @@ const VM = {
         parsedVm.canUserEditVm = canUserEditVm(parsedVm.permits)
         parsedVm.canUserManipulateSnapshots = canUserManipulateSnapshots(parsedVm.permits)
         parsedVm.canUserEditVmStorage = canUserEditVmStorage(parsedVm.permits)
+        parsedVm.canUserUseConsole = canUserUseConsole(parsedVm.permits)
       }
     }
 
@@ -876,6 +880,19 @@ const Event = {
   toApi: undefined,
 }
 
+const User = {
+  toInternal ({ user }: { user: ApiUserType }): UserType {
+    return {
+      userName: user.user_name,
+      lastName: user.last_name,
+      email: user.email,
+      principal: user.principal,
+    }
+  },
+
+  toApi: undefined,
+}
+
 //
 // Export each transforms individually so they can be consumed individually
 //
@@ -902,4 +919,5 @@ export {
   CloudInit,
   Permissions,
   Event,
+  User,
 }

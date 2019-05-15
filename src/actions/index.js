@@ -6,6 +6,7 @@ import {
   GET_BY_PAGE,
   GET_OPTION,
   GET_USB_FILTER,
+  GET_USER,
   GET_USER_GROUPS,
   GET_VM,
   SET_ADMINISTRATOR,
@@ -13,6 +14,7 @@ import {
   SET_CURRENT_PAGE,
   SET_DEFAULT_TIMEZONE,
   SET_USB_FILTER,
+  SET_USER,
   SET_USER_FILTER_PERMISSION,
   SET_USER_GROUPS,
   SET_USER_SESSION_TIMEOUT_INTERVAL,
@@ -182,6 +184,22 @@ export function setUserGroups ({ groups }) {
 
 export function getUserGroups () {
   return { type: GET_USER_GROUPS }
+}
+
+export function setUser ({ user }) {
+  return {
+    type: SET_USER,
+    payload: {
+      user,
+    },
+  }
+}
+
+export function getUser () {
+  return {
+    type: GET_USER,
+    payload: {},
+  }
 }
 
 export function setCpuTopologyOptions ({

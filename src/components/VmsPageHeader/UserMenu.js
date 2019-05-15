@@ -1,12 +1,12 @@
 import React from 'react'
 import PropTypes from 'prop-types'
 import { connect } from 'react-redux'
+import { Link } from 'react-router-dom'
 
 import { logout } from '_/actions'
 
 import { msg } from '_/intl'
 import AboutDialog from '../About'
-import OptionsDialog from '../OptionsDialog'
 import OverlayTooltip from '_/components/OverlayTooltip'
 
 const UserMenu = ({ config, onLogout }) => {
@@ -20,7 +20,7 @@ const UserMenu = ({ config, onLogout }) => {
       </OverlayTooltip>
       <ul className='dropdown-menu'>
         <li>
-          <OptionsDialog userId={config.getIn(['user', 'id'])} />
+          <Link to='/settings'>Settings</Link>
         </li>
         <li>
           <AboutDialog />

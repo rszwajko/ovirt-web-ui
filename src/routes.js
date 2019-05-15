@@ -1,9 +1,21 @@
 import React from 'react'
 
 import PageRouter from './components/PageRouter'
+
 import Handler404 from './Handler404'
-import { VmDetailToolbar, VmConsoleToolbar, VmsListToolbar } from './components/Toolbar'
-import { VmDetailsPage, VmCreatePage, VmsPage, VmConsolePage } from './components/Pages'
+import {
+  VmDetailToolbar,
+  VmConsoleToolbar,
+  VmsListToolbar,
+} from './components/Toolbar'
+import {
+  VmDetailsPage,
+  VmCreatePage,
+  VmsPage,
+  GlobalSettingsPage,
+  VmSettingsPage,
+  VmConsolePage,
+} from './components/Pages'
 
 import { msg } from '_/intl'
 import {
@@ -12,6 +24,8 @@ import {
   MAIN_PAGE_TYPE,
   CONSOLE_PAGE_TYPE,
   NO_REFRESH_TYPE,
+  SETTINGS_PAGE_TYPE,
+  VM_SETTINGS_PAGE_TYPE,
 } from '_/constants'
 
 /**
@@ -65,6 +79,15 @@ export default function getRoutes (vms) {
             isToolbarFullWidth: true,
             type: CONSOLE_PAGE_TYPE,
           },
+          {
+            path: '/vm/:id/settings',
+            title: (match) => 'settings' || match.params.id,
+            component: VmSettingsPage,
+            toolbars: () => <div id='settings-toolbar' />,
+            closeable: true,
+            isToolbarFullWidth: true,
+            type: VM_SETTINGS_PAGE_TYPE,
+          },
         ],
       },
       {
@@ -73,6 +96,16 @@ export default function getRoutes (vms) {
         toolbars: null,
         type: NO_REFRESH_TYPE,
         breadcrumb: false,
+      },
+      {
+        path: '/settings',
+        exact: true,
+        title: () => 'Settings',
+        component: GlobalSettingsPage,
+        toolbars: () => <div id='settings-toolbar' />,
+        closeable: true,
+        isToolbarFullWidth: true,
+        type: SETTINGS_PAGE_TYPE,
       },
     ],
   }]

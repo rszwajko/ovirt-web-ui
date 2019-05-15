@@ -1,13 +1,10 @@
 import { put, select } from 'redux-saga/effects'
 
 import Api from '_/ovirtapi'
-import OptionsManager from '_/optionsManager'
 import { fileDownload } from '_/helpers'
 import { doesVmSessionExistForUserId } from '_/utils'
 import {
   downloadConsole,
-  getConsoleOptions as getConsoleOptionsAction,
-  setConsoleOptions,
   setVmSessions,
   setConsoleStatus,
   setConsoleTickets,
@@ -52,13 +49,8 @@ export function* downloadVmConsole (action) {
      *Download console if type is spice or novnc is running already
      */
     if (data.indexOf('type=spice') > -1 || !isNoVNC) {
-      let options = yield select(state => state.options.getIn(['options', 'consoleOptions', vmId]))
-      if (!options) {
-        console.log('downloadVmConsole() console options not yet present, trying to load from local storage')
-        options = yield getConsoleOptions(getConsoleOptionsAction({ vmId }))
-      }
-
-      data = adjustVVFile({ data, options, usbFilter, isSpice })
+      const options = yield select(state => state.options)
+      data = adjustVVFile({ data, options, vmId, usbFilter, isSpice })
       fileDownload({ data, fileName: `console.vv`, mimeType: 'application/x-virt-viewer' })
       yield put(setConsoleStatus({ vmId, status: DOWNLOAD_CONSOLE }))
     } else {
@@ -123,16 +115,4 @@ export function* openConsoleModal (action) {
       skipSSO: doesVmSessionExistForUserId(sessionsInternal, userId),
     }))
   }
-}
-
-// ----- Console Options (per VM) held by `OptionsManager`
-export function* getConsoleOptions (action) {
-  const options = OptionsManager.loadConsoleOptions(action.payload)
-  yield put(setConsoleOptions({ vmId: action.payload.vmId, options }))
-  return options
-}
-
-export function* saveConsoleOptions (action) {
-  OptionsManager.saveConsoleOptions(action.payload)
-  yield getConsoleOptions(getConsoleOptionsAction({ vmId: action.payload.vmId }))
 }

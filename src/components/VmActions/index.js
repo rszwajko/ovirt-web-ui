@@ -3,6 +3,7 @@ import PropTypes from 'prop-types'
 
 import { connect } from 'react-redux'
 import { withRouter } from 'react-router-dom'
+import { push } from 'connected-react-router'
 
 import style from './style.css'
 import { msg } from '_/intl'
@@ -29,7 +30,8 @@ import {
 
 import { isWindows } from '_/helpers'
 
-import { SplitButton, Icon, Checkbox, DropdownKebab } from 'patternfly-react'
+import { SplitButton, Icon, MenuItem, DropdownKebab, Checkbox } from 'patternfly-react'
+
 import ConfirmationModal from './ConfirmationModal'
 import ConsoleConfirmationModal from './ConsoleConfirmationModal'
 import Action, { ActionButtonWraper, MenuItemAction, ActionMenuItemWrapper } from './Action'
@@ -116,6 +118,7 @@ class VmActions extends React.Component {
     const {
       vm,
       pool,
+      options,
       idPrefix = `vmaction-${vm.get('name')}`,
       config,
       onStartVm,
@@ -143,6 +146,8 @@ class VmActions extends React.Component {
     if (vm.get('consoleInUse')) {
       consoleProtocol = 'Console in use'
     }
+
+    const mainOptions = options.getIn(['vms', vm.get('id')]) ? options.getIn(['vms', vm.get('id')]) : options.get('options')
 
     const vncConsole = vm.get('consoles').find(c => c.get('protocol') === 'vnc')
     const hasRdp = isWindows(vm.getIn(['os', 'type']))
@@ -201,12 +206,13 @@ class VmActions extends React.Component {
         className: 'btn btn-default',
         id: `${idPrefix}-button-suspend`,
         confirmation: (
-          <ConfirmationModal
+          mainOptions.get('confirmVmSuspending') && <ConfirmationModal
             title={msg.suspendVm()}
             body={msg.suspendVmQuestion()}
             confirm={{ title: msg.yes(), onClick: () => onSuspend() }}
           />
         ),
+        onClick: onSuspend,
       },
       {
         priority: 0,
@@ -260,13 +266,16 @@ class VmActions extends React.Component {
       pool,
       isOnCard = false,
       idPrefix = `vmaction-${vm.get('name')}`,
+      options,
       onRemove,
+      goToSettings,
     } = this.props
 
     const isPool = !!pool
     const status = vm.get('status')
 
     const actions = this.getDefaultActions()
+    const mainOptions = options.getIn(['vms', vm.get('id')]) ? options.getIn(['vms', vm.get('id')]) : options.get('options')
 
     idPrefix = `${idPrefix}-actions`
 
@@ -281,7 +290,7 @@ class VmActions extends React.Component {
     }
 
     // Actions for the Toolbar
-    const removeConfirmation = (
+    const removeConfirmation = mainOptions.get('confirmVmDeleting') && (
       <ConfirmationModal
         title={msg.removeVm()}
         body={
@@ -331,7 +340,13 @@ class VmActions extends React.Component {
           tooltip={msg.removeVm()}
           className='btn btn-danger'
           id={`${idPrefix}-button-remove`}
+          onClick={() => onRemove({ preserveDisks: this.state.removePreserveDisks })}
         />
+        <DropdownKebab id={`${idPrefix}-kebab`} pullRight>
+          <MenuItem onClick={goToSettings}>
+            Edit settings
+          </MenuItem>
+        </DropdownKebab>
       </div>
     </React.Fragment>
     )
@@ -342,6 +357,7 @@ VmActions.propTypes = {
   vm: PropTypes.object.isRequired,
   pool: PropTypes.object,
   config: PropTypes.object.isRequired,
+  options: PropTypes.object.isRequired,
   isOnCard: PropTypes.bool,
   isEditable: PropTypes.bool,
   idPrefix: PropTypes.string,
@@ -356,6 +372,7 @@ VmActions.propTypes = {
   onStartPool: PropTypes.func.isRequired,
   onStartVm: PropTypes.func.isRequired,
   onRDP: PropTypes.func.isRequired,
+  goToSettings: PropTypes.func.isRequired,
 }
 
 export default withRouter(
@@ -363,6 +380,7 @@ export default withRouter(
     (state, { vm }) => ({
       isEditable: vm.get('canUserEditVm') && state.clusters.find(cluster => cluster.get('canUserUseCluster')) !== undefined,
       config: state.config,
+      options: state.options,
     }),
     (dispatch, { vm, pool }) => ({
       onShutdown: () => dispatch(shutdownVm({ vmId: vm.get('id'), force: false })),
@@ -373,6 +391,7 @@ export default withRouter(
       onStartPool: () => dispatch(startPool({ poolId: pool.get('id') })),
       onStartVm: () => dispatch(startVm({ vmId: vm.get('id') })),
       onRDP: ({ domain, username }) => dispatch(getRDP({ name: vm.get('name'), fqdn: vm.get('fqdn'), domain, username })),
+      goToSettings: () => dispatch(push(`/vm/${vm.get('id')}/settings`)),
     })
   )(VmActions)
 )

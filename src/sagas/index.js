@@ -3,11 +3,11 @@ import AppConfiguration from '_/config'
 import { saveToLocalStorage } from '_/storage'
 
 import vmSnapshotsSagas from '_/components/VmDetails/cards/SnapshotsCard/sagas'
-import optionsDialogSagas from '_/components/OptionsDialog/sagas'
 import vmDisksSagas from './disks'
 import storageDomainSagas, { fetchIsoFiles } from './storageDomains'
 import loginSagas from './login'
 import { fetchUnknownIcons } from './osIcons'
+import settingsSagas, { refreshUserSettingsPage } from './options'
 
 import {
   all,
@@ -40,9 +40,11 @@ import {
   setTemplates,
   setOperatingSystems,
   setUserGroups,
+  setUser,
   addNetworksToVnicProfiles,
   setVnicProfiles,
   setVmSnapshots,
+  saveOption,
 
   setUserMessages,
   dismissUserMessage,
@@ -58,7 +60,6 @@ import {
   getVmsByCount,
   getPoolsByCount,
   getIsoFiles,
-  getConsoleOptions as actionGetConsoleOptions,
   setVmCdRom,
   setVmNics,
   removeActiveRequest,
@@ -82,8 +83,6 @@ import {
 
 import {
   downloadVmConsole,
-  getConsoleOptions,
-  saveConsoleOptions,
   getRDPVm,
   fetchConsoleVmMeta,
   openConsoleModal,
@@ -110,17 +109,16 @@ import {
   GET_ALL_TEMPLATES,
   GET_ALL_VNIC_PROFILES,
   GET_BY_PAGE,
-  GET_CONSOLE_OPTIONS,
   GET_POOLS_BY_COUNT,
   GET_POOLS_BY_PAGE,
   GET_RDP_VM,
+  GET_USER,
   GET_USER_GROUPS,
   GET_VMS_BY_COUNT,
   GET_VMS_BY_PAGE,
   REFRESH_DATA,
   REMOVE_VM,
   RESTART_VM,
-  SAVE_CONSOLE_OPTIONS,
   SAVE_FILTERS,
   SELECT_POOL_DETAIL,
   SELECT_VM_DETAIL,
@@ -136,6 +134,8 @@ import {
   DIALOG_PAGE_TYPE,
   MAIN_PAGE_TYPE,
   NO_REFRESH_TYPE,
+  SETTINGS_PAGE_TYPE,
+  VM_SETTINGS_PAGE_TYPE,
 } from '_/constants'
 
 import {
@@ -148,6 +148,8 @@ import {
   getUserPermits,
   canUserUseTemplate,
 } from '_/utils'
+
+import { isRunning } from '_/components/utils'
 
 const vmFetchAdditionalList =
   [
@@ -230,7 +232,6 @@ export function* refreshMainPage ({ shallowFetch, page }) {
 
 function* refreshDetailPage ({ id, onNavigation, onSchedule }) {
   yield selectVmDetail(actionSelectVmDetail({ vmId: id }))
-  yield getConsoleOptions(actionGetConsoleOptions({ vmId: id }))
 
   // Load ISO images on manual refresh click only
   if (!onNavigation && !onSchedule) {
@@ -255,11 +256,17 @@ function* refreshConsolePage ({ id }) {
   }
 }
 
+function* refreshVmSettingsPage ({ id }) {
+  yield selectVmDetail(actionSelectVmDetail({ vmId: id }))
+}
+
 const pagesRefreshers = {
   [MAIN_PAGE_TYPE]: refreshMainPage,
   [DETAIL_PAGE_TYPE]: refreshDetailPage,
   [DIALOG_PAGE_TYPE]: refreshDialogPage,
   [CONSOLE_PAGE_TYPE]: refreshConsolePage,
+  [SETTINGS_PAGE_TYPE]: refreshUserSettingsPage,
+  [VM_SETTINGS_PAGE_TYPE]: refreshVmSettingsPage,
 }
 
 function* refreshData (action) {
@@ -511,6 +518,20 @@ function* fetchPoolsByPage (action) {
   }
 }
 
+export function* fetchCurrentUser () {
+  const user = yield callExternalAction('user', Api.user, {
+    payload: {
+      userId: yield select((state) => state.config.getIn(['user', 'id'])),
+    },
+  })
+
+  if (user) {
+    const internalUser = Api.userToInternal({ user })
+
+    yield put(setUser({ user: internalUser }))
+  }
+}
+
 function* fetchSinglePool (action) {
   const { poolId } = action.payload
 
@@ -627,21 +648,36 @@ export function* startProgress ({ vmId, poolId, name }) {
 }
 
 function* getSingleInstance ({ vmId, poolId }) {
-  const fetches = [ fetchSingleVm(getSingleVm({ vmId })) ]
+  const fetches = { vm: fetchSingleVm(getSingleVm({ vmId })) }
   if (poolId) {
-    fetches.push(fetchSinglePool(getSinglePool({ poolId })))
+    fetches.pool = fetchSinglePool(getSinglePool({ poolId }))
   }
-  yield all(fetches)
+  const res = yield all(fetches)
+  return res
 }
 
-export function* stopProgress ({ vmId, poolId, name, result }) {
+export function* stopProgress ({
+  vmId,
+  poolId,
+  name,
+  result,
+  conditional = () => true,
+  onFinish,
+}) {
   const actionInProgress = vmId ? vmActionInProgress : poolActionInProgress
   if (result && result.status === 'complete') {
     vmId = vmId || result.vm.id
     // do not call 'end of in progress' if successful,
     // since UI will be updated by refresh
-    yield delay(5 * 1000)
-    yield getSingleInstance({ vmId, poolId })
+    let res = null
+    do {
+      yield delay(5 * 1000)
+      res = yield getSingleInstance({ vmId, poolId })
+    } while (!conditional(res))
+
+    if (onFinish) {
+      yield onFinish(res)
+    }
 
     yield delay(30 * 1000)
     yield getSingleInstance({ vmId, poolId })
@@ -672,7 +708,22 @@ function* startVm (action) {
   yield startProgress({ vmId: action.payload.vmId, name: 'start' })
   const result = yield callExternalAction('start', Api.start, action)
   // TODO: check status at refresh --> conditional refresh wait_for_launch
-  yield stopProgress({ vmId: action.payload.vmId, name: 'start', result })
+  yield stopProgress({
+    vmId: action.payload.vmId,
+    name: 'start',
+    result,
+    conditional: ({ vm }) => isRunning(vm.status),
+    onFinish: function* ({ vm }) {
+      const globalOptions = yield select(state => state.options.get('options'))
+      const vmOptions = yield select(state => state.options.getIn(['vms', vm.id]))
+      const usedOptions = vmOptions || globalOptions
+      if (usedOptions.get('autoConnect')) {
+        console.log('work')
+        const fullVm = yield select(state => state.vms.getIn(['vms', vm.id]))
+        yield openConsoleModal({ payload: { modalId: `autoconnect-confirmation-${vm.id}`, vmId: vm.id, consoleId: fullVm.getIn(['consoles', 0, 'id']), hasGuestAgent: vm.ssoGuestAgent } })
+      }
+    },
+  })
 }
 
 function* startPool (action) {
@@ -1039,17 +1090,18 @@ function* startSchedulerWithFixedDelay (action) {
   yield put(stopSchedulerFixedDelay())
 
   // run a new scheduler
-  yield schedulerWithFixedDelay(action.payload.delayInSeconds)
+  yield schedulerWithFixedDelay()
 }
 
 let _SchedulerCount = 0
 
-function* schedulerWithFixedDelay (delayInSeconds = AppConfiguration.schedulerFixedDelayInSeconds) {
+function* schedulerWithFixedDelay () {
   const myId = _SchedulerCount++
   console.log(`⏰ schedulerWithFixedDelay[${myId}] starting fixed delay scheduler`)
 
   let enabled = true
   while (enabled) {
+    let delayInSeconds = yield select(state => state.options.getIn(['options', 'updateRate'], 60))
     console.log(`⏰ schedulerWithFixedDelay[${myId}] stoppable delay for: ${delayInSeconds}`)
     const { stopped } = yield race({
       stopped: take(STOP_SCHEDULER_FIXED_DELAY),
@@ -1069,6 +1121,16 @@ function* schedulerWithFixedDelay (delayInSeconds = AppConfiguration.schedulerFi
     } else {
       console.log(`⏰ schedulerWithFixedDelay[${myId}] running after delay of: ${delayInSeconds}`)
 
+      const dontDisturb = yield select(state => state.options.getIn(['options', 'dontDisturb']))
+      const dontDisturbFor = yield select(state => state.options.getIn(['options', 'dontDisturbFor']))
+      const dontDisturbStart = yield select(state => state.options.getIn(['options', 'dontDisturbStart']))
+
+      if (dontDisturb) {
+        const remain = Date.now() - (dontDisturbStart + (dontDisturbFor * 60 * 1000))
+        if (remain > 0) {
+          yield put(saveOption({ key: 'dontDisturb', value: false }))
+        }
+      }
       const oVirtVersion = yield select(state => state.config.get('oVirtApiVersion'))
       if (oVirtVersion.get('passed')) {
         yield refreshData(refresh({
@@ -1121,6 +1183,7 @@ export function* rootSaga () {
     takeLatest(GET_ALL_HOSTS, fetchAllHosts),
     takeLatest(GET_ALL_VNIC_PROFILES, fetchAllVnicProfiles),
     takeLatest(GET_USER_GROUPS, fetchUserGroups),
+    takeLatest(GET_USER, fetchCurrentUser),
 
     takeLatest(GET_ALL_EVENTS, fetchAllEvents),
     takeEvery(DISMISS_EVENT, dismissEvent),
@@ -1130,8 +1193,6 @@ export function* rootSaga () {
     takeEvery(ADD_VM_NIC, addVmNic),
     takeEvery(DELETE_VM_NIC, deleteVmNic),
     takeEvery(EDIT_VM_NIC, editVmNic),
-    takeEvery(GET_CONSOLE_OPTIONS, getConsoleOptions),
-    takeEvery(SAVE_CONSOLE_OPTIONS, saveConsoleOptions),
 
     takeEvery(SAVE_FILTERS, saveFilters),
 
@@ -1141,6 +1202,6 @@ export function* rootSaga () {
     ...vmDisksSagas,
     ...storageDomainSagas,
     ...vmSnapshotsSagas,
-    ...optionsDialogSagas,
+    ...settingsSagas,
   ])
 }

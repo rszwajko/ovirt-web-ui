@@ -1,6 +1,7 @@
 import {
   call,
   put,
+  select,
 } from 'redux-saga/effects'
 
 import AppConfiguration from '_/config'
@@ -46,7 +47,9 @@ export function* callExternalAction (methodName, method, action = {}, canBeMissi
     const result = yield call(method, action.payload || {})
     return result
   } catch (e) {
-    if (!canBeMissing) {
+    const isFiltered = yield select(state => state.options.getIn(['vms', action.payload.vmId, 'notifications'], false))
+    const isDontDisturb = yield select(state => state.options.getIn(['options', 'dontDisturb'], false))
+    if (!canBeMissing && !(isDontDisturb && isFiltered)) {
       console.log(`External action exception: ${JSON.stringify(e)}`)
 
       if (e.status === 401) { // Unauthorized

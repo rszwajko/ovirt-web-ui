@@ -19,7 +19,7 @@ class ConsoleConfirmationModal extends React.Component {
     this.checkConsoleInUseSended = false
     this.onConsoleConfirmationClose = this.onConsoleConfirmationClose.bind(this)
     this.onConsoleDownload = this.onConsoleDownload.bind(this)
-    this.modalId = generateUnique(`${props.vm.get('id')} ${props.consoleId}`)
+    this.modalId = props.modalId || generateUnique(`${props.vm.get('id')} ${props.consoleId}`)
     if (props.show) {
       props.onOpen({
         usbFilter: props.config.get('usbFilter'),
@@ -97,6 +97,7 @@ ConsoleConfirmationModal.propTypes = {
   consoles: PropTypes.object.isRequired,
   config: PropTypes.object.isRequired,
   show: PropTypes.bool,
+  modalId: PropTypes.string,
   isNoVNC: PropTypes.bool, // eslint-disable-line react/no-unused-prop-types
   isConsolePage: PropTypes.bool, // eslint-disable-line react/no-unused-prop-types
   consoleId: PropTypes.string, // eslint-disable-line react/no-unused-prop-types

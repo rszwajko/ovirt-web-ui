@@ -13,6 +13,7 @@ import VmsList from '../VmsList'
 import VmDetails from '../VmDetails'
 import VmConsole from '../VmConsole'
 import Handler404 from '_/Handler404'
+import { GlobalSettings, VmSettings } from '../UserSettings'
 
 import { addUserMessage, selectPoolDetail } from '_/actions'
 
@@ -22,6 +23,52 @@ import { addUserMessage, selectPoolDetail } from '_/actions'
 const VmsPage = () => {
   return <VmsList />
 }
+
+const GlobalSettingsPage = () => {
+  return <GlobalSettings />
+}
+
+class VmSettingsPage extends React.Component {
+  constructor (props) {
+    super(props)
+    this.state = {
+      vmId: undefined,
+    }
+  }
+
+  static getDerivedStateFromProps (props, state) {
+    if (state.vmId !== props.match.params.id) {
+      const vmId = props.match.params.id
+      return { vmId }
+    }
+
+    return null
+  }
+
+  render () {
+    const { vms } = this.props
+    const { vmId } = this.state
+
+    if (vmId && vms.getIn(['vms', vmId])) {
+      return (<VmSettings vm={vms.getIn(['vms', vmId])} />)
+    }
+
+    // TODO: Add handling for if the fetch runs but fails (FETCH-FAIL), see issue #631
+    console.info(`VmSettingsPage: VM id cannot be found: ${vmId}`)
+    return null
+  }
+}
+
+VmSettingsPage.propTypes = {
+  vms: PropTypes.object.isRequired,
+  match: RouterPropTypeShapes.match.isRequired,
+}
+const VmSettingsPageConnected = connect(
+  (state) => ({
+    vms: state.vms,
+  }),
+  (dispatch) => ({})
+)(VmSettingsPage)
 
 /**
  * Route component (for PageRouter) to view a VM's details
@@ -149,4 +196,6 @@ export {
   VmCreatePageConnected as VmCreatePage,
   VmConsolePageConnected as VmConsolePage,
   VmsPage,
+  GlobalSettingsPage,
+  VmSettingsPageConnected as VmSettingsPage,
 }

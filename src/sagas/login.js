@@ -4,7 +4,6 @@ import pick from 'lodash/pick'
 import Product from '_/version'
 import Api from '_/ovirtapi'
 import AppConfiguration from '_/config'
-import OptionsManager from '_/optionsManager'
 
 import {
   loginSuccessful,
@@ -27,11 +26,8 @@ import {
   getAllVnicProfiles,
   getIsoFiles,
   getUserGroups,
+  getUser,
 
-  downloadConsole,
-  getSingleVm,
-
-  updateVms,
   appConfigured,
   saveVmsFilters,
 } from '_/actions'
@@ -50,8 +46,8 @@ import {
   fetchAllTemplates,
   fetchAllVnicProfiles,
   fetchUserGroups,
+  fetchCurrentUser,
 } from './index'
-import { downloadVmConsole } from './console'
 import { fetchServerConfiguredValues } from './server-configs'
 import { fetchDataCentersAndStorageDomains, fetchIsoFiles } from './storageDomains'
 import { loadIconsFromLocalStorage } from './osIcons'
@@ -104,7 +100,6 @@ function* login (action) {
 
   yield put(appConfigured())
   yield put(startSchedulerFixedDelay())
-  yield autoConnectCheck()
   yield put(getAllEvents())
 }
 
@@ -189,6 +184,7 @@ function* initialLoad () {
   // no data prerequisites
   yield all([
     call(loadIconsFromLocalStorage),
+    call(fetchCurrentUser, getUser()),
     call(fetchUserGroups, getUserGroups()),
     call(fetchAllOS, getAllOperatingSystems()),
     call(fetchAllHosts, getAllHosts()),
@@ -211,20 +207,6 @@ function* initialLoad () {
 
   // The `Vms` card view component will take care of loading pages of VMs and Pools as needed.
   // Loading VMs and Pools here is not necessary and will cause issues with `Vms`'s loading.
-}
-
-function* autoConnectCheck () {
-  const vmId = OptionsManager.loadAutoConnectOption()
-  if (vmId && vmId.length > 0) {
-    const vm = yield callExternalAction('getVm', Api.getVm, getSingleVm({ vmId }), true)
-    if (vm && vm.error && vm.error.status === 404) {
-      OptionsManager.clearAutoConnect()
-    } else if (vm && vm.id && vm.status !== 'down') {
-      const internalVm = Api.vmToInternal({ vm })
-      yield put(updateVms({ vms: [internalVm] }))
-      yield downloadVmConsole(downloadConsole({ vmId, hasGuestAgent: internalVm.ssoGuestAgent }))
-    }
-  }
 }
 
 export default [

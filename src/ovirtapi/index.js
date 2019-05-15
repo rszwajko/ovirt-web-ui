@@ -17,6 +17,7 @@ import {
   httpPost,
   httpPut,
   httpDelete,
+  httpHead,
 } from './transport'
 
 import * as Transforms from './transform'
@@ -83,6 +84,8 @@ const OvirtApi = {
 
   eventToInternal: Transforms.Event.toInternal,
 
+  userToInternal: Transforms.User.toInternal,
+
   //
   //
   // ---- API interaction functions
@@ -100,6 +103,11 @@ const OvirtApi = {
       url += `?follow=${additional.join(',')}`
     }
     return httpGet({ url })
+  },
+  isVmExist ({ vmId }: { vmId: string }): Promise<Object> {
+    assertLogin({ methodName: 'isVmExist' })
+    let url = `${AppConfiguration.applicationContext}/api/vms/${vmId}`
+    return httpHead({ url })
   },
   getVmsByPage ({ page, additional }: { page: number, additional: Array<string> }): Promise<Object> {
     assertLogin({ methodName: 'getVmsByPage' })
@@ -304,6 +312,10 @@ const OvirtApi = {
   icon ({ id }: { id: string }): Promise<Object> {
     assertLogin({ methodName: 'icon' })
     return httpGet({ url: `${AppConfiguration.applicationContext}/api/icons/${id}` })
+  },
+  user ({ userId }: { userId: string }): Promise<Object> {
+    assertLogin({ methodName: 'user' })
+    return httpGet({ url: `${AppConfiguration.applicationContext}/api/users/${userId}` })
   },
 
   diskattachment ({ vmId, attachmentId }: { vmId: string, attachmentId: string}): Promise<Object> {

@@ -30,7 +30,7 @@ function assertLogin ({ methodName }: { methodName: string }) {
 //
 // HTTP Listener Handling
 //
-type MethodType = 'GET' | 'POST' | 'PUT' | 'DELETE'
+type MethodType = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'HEAD'
 type ListenerType = (requestId: Object, eventType: 'START' | 'STOP') => void
 
 const listeners: Set<ListenerType> = new Set()
@@ -82,6 +82,33 @@ function httpGet ({ url, custHeaders = {} }: GetRequestType): Promise<Object> {
     })
     .catch((data: Object): Promise<Object> => {
       console.log(`Ajax GET failed: ${JSON.stringify(data)}`)
+      notifyStop(requestId)
+      return Promise.reject(data)
+    })
+}
+
+function httpHead ({ url, custHeaders = {} }: GetRequestType): Promise<Object> {
+  const myCounter = getCounter++
+  const requestId = notifyStart('HEAD', url)
+  const headers = {
+    'Accept': 'application/json',
+    'Authorization': `Bearer ${_getLoginToken()}`,
+    'Accept-Language': AppConfiguration.queryParams.locale, // can be: undefined, empty or string
+    'Filter': Selectors.getFilter(),
+    ...custHeaders,
+  }
+
+  console.log(`http HEAD[${myCounter}] -> url: "${url}", headers: ${logHeaders(headers)}`)
+  return $.ajax(url, {
+    type: 'HEAD',
+    headers,
+  })
+    .then((data: Object): Object => {
+      notifyStop(requestId)
+      return data
+    })
+    .catch((data: Object): Promise<Object> => {
+      console.log(`Ajax HEAD failed: ${JSON.stringify(data)}`)
       notifyStop(requestId)
       return Promise.reject(data)
     })
@@ -170,4 +197,5 @@ export {
   httpPost,
   httpPut,
   httpDelete,
+  httpHead,
 }

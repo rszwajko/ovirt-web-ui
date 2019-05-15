@@ -1,15 +1,17 @@
 
-export function adjustVVFile ({ data, options, usbFilter, isSpice }) {
+export function adjustVVFile ({ data, options, usbFilter, isSpice, vmId }) {
   // __options__ can either be a plain JS object or ImmutableJS Map
   console.log('adjustVVFile options:', options)
-
-  if (options && ((options.get && options.get('fullscreen')) || options.fullscreen)) {
+  const globalOptions = options.get('options')
+  const vmOptions = options.getIn(['options', vmId])
+  const usedOptions = vmOptions || globalOptions
+  if (usedOptions.get('fullScreenMode')) {
     data = data.replace(/^fullscreen=0/mg, 'fullscreen=1')
   }
 
   const pattern = /^secure-attention=.*$/mg
   let text = 'secure-attention=ctrl+alt+del'
-  if (options && ((options.get && options.get('ctrlAltDelToEnd')) || options.ctrlAltDelToEnd)) {
+  if (usedOptions.get('ctrlAltDel')) {
     text = 'secure-attention=ctrl+alt+end'
   }
   if (data.match(pattern)) {
@@ -25,7 +27,7 @@ export function adjustVVFile ({ data, options, usbFilter, isSpice }) {
   }
 
   if (options && isSpice) {
-    const smartcardEnabled = options.get ? options.get('smartcardEnabled') : options.smartcardEnabled
+    const smartcardEnabled = usedOptions.get('smartcard')
     data = data.replace(/^enable-smartcard=[01]$/mg, `enable-smartcard=${smartcardEnabled ? 1 : 0}`)
   }
 
