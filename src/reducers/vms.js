@@ -216,7 +216,7 @@ const vms = actionReducer(initialState, {
     state.get('vms').toList().map(vm => {
       // Check if vm is in actual pool and its down, checking for down vms is for not count that vms in admin mode
       if (
-        vm.getIn(['pool', 'id']) &&
+        !!vm.getIn(['pool', 'id']) &&
         (
           vm.get('status') !== 'down' ||
           state.getIn(['pools', vm.getIn(['pool', 'id']), 'type']) === 'manual'

@@ -104,3 +104,9 @@ dl.pool-info dd {
 .card-box :global(.card-pf) {
     height: calc(100% - 20px);
 }
+
+.vm-checkbox {
+    margin-left: 30px;
+    position: absolute;
+    margin-top: 20px;
+}

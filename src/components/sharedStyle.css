@@ -93,3 +93,11 @@
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
 }
+
+:global(.toolbar-pf .form-group) .color-blue {
+    color: #0088ce;
+}
+
+.settings-icon span {
+    margin-right: 5px;
+}

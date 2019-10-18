@@ -1,7 +1,6 @@
 import React from 'react'
 import PropTypes from 'prop-types'
 import { connect } from 'react-redux'
-import { Link } from 'react-router-dom'
 
 import { logout } from '_/actions'
 
@@ -19,9 +18,6 @@ const UserMenu = ({ config, onLogout }) => {
         </a>
       </OverlayTooltip>
       <ul className='dropdown-menu'>
-        <li>
-          <Link to='/settings'>Settings</Link>
-        </li>
         <li>
           <AboutDialog />
         </li>

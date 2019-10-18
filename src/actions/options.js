@@ -2,16 +2,12 @@ import {
   GET_SSH_KEY,
   SAVE_OPTION,
   SAVE_GLOBAL_OPTIONS,
-  SAVE_OPTION_TO_VMS,
   SAVE_SSH_KEY,
-  SAVE_VM_OPTIONS,
+  SAVE_VMS_OPTIONS,
   SET_SSH_KEY,
   SET_OPTION,
   SET_OPTION_TO_VMS,
   SET_OPTIONS_SAVE_RESULTS,
-  RESET_GLOBAL_SETTINGS,
-  RESET_OPTIONS,
-  RESET_VM_SETTINGS,
 } from '_/constants'
 
 export function getSSHKey ({ userId }) {
@@ -67,12 +63,11 @@ export function saveOption ({ key, value, vmId }) {
   }
 }
 
-export function saveGlobalOptions ({ values, checkedVms }, { correlationId }) {
+export function saveGlobalOptions ({ values }, { correlationId }) {
   return {
     type: SAVE_GLOBAL_OPTIONS,
     payload: {
       values,
-      checkedVms,
     },
     meta: {
       correlationId,
@@ -80,12 +75,12 @@ export function saveGlobalOptions ({ values, checkedVms }, { correlationId }) {
   }
 }
 
-export function saveVmOptions ({ values, vmId }, { correlationId }) {
+export function saveVmsOptions ({ values, vmIds }, { correlationId }) {
   return {
-    type: SAVE_VM_OPTIONS,
+    type: SAVE_VMS_OPTIONS,
     payload: {
       values,
-      vmId,
+      vmIds,
     },
     meta: {
       correlationId,
@@ -100,42 +95,6 @@ export function setOptionsSaveResults ({ correlationId, status, details }) {
       correlationId,
       status,
       details,
-    },
-  }
-}
-
-export function saveOptionToVms ({ key, value, vmIds, values }) {
-  return {
-    type: SAVE_OPTION_TO_VMS,
-    payload: {
-      key,
-      value,
-      vmIds,
-      values,
-    },
-  }
-}
-
-export function resetGlobalSettings () {
-  return {
-    type: RESET_GLOBAL_SETTINGS,
-  }
-}
-
-export function resetVmSettings ({ vmId }) {
-  return {
-    type: RESET_VM_SETTINGS,
-    payload: {
-      vmId,
-    },
-  }
-}
-
-export function resetOptions ({ vmId } = {}) {
-  return {
-    type: RESET_OPTIONS,
-    payload: {
-      vmId,
     },
   }
 }

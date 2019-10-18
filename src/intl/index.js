@@ -29,7 +29,7 @@ const options = JSON.parse(loadFromLocalStorage('options')) || {}
 /**
  * Currently selected locale
  */
-export const locale: string = getLocaleFromUrl() || options.options.language || getBrowserLocale() || DEFAULT_LOCALE
+export const locale: string = getLocaleFromUrl() || (options.options && options.options.language) || getBrowserLocale() || DEFAULT_LOCALE
 
 function getBrowserLocale (): ?string {
   if (window.navigator.language) {

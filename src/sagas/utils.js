@@ -47,9 +47,9 @@ export function* callExternalAction (methodName, method, action = {}, canBeMissi
     const result = yield call(method, action.payload || {})
     return result
   } catch (e) {
-    const isFiltered = yield select(state => state.options.getIn(['vms', action.payload.vmId, 'notifications'], false))
+    const isVmNotDisturb = yield select(state => state.options.getIn(['vms', action.payload.vmId, 'disturb'], true))
     const isDontDisturb = yield select(state => state.options.getIn(['options', 'dontDisturb'], false))
-    if (!canBeMissing && !(isDontDisturb && isFiltered)) {
+    if (!canBeMissing && !(isDontDisturb && isVmNotDisturb)) {
       console.log(`External action exception: ${JSON.stringify(e)}`)
 
       if (e.status === 401) { // Unauthorized

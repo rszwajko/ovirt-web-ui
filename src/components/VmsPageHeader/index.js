@@ -2,6 +2,8 @@ import React from 'react'
 import PropTypes from 'prop-types'
 
 import { connect } from 'react-redux'
+import { Link } from 'react-router-dom'
+import { Icon } from 'patternfly-react'
 
 import VmUserMessages from '../VmUserMessages'
 import UserMenu from './UserMenu'
@@ -26,6 +28,16 @@ const VmsPageHeader = ({ page, onRefresh }) => {
               <a href='#' className='nav-item-iconic' onClick={hrefWithoutHistory(() => onRefresh(page))} id={`${idPrefix}-refresh`}>
                 <i className='fa fa-refresh' />
               </a>
+            </OverlayTooltip>
+          </li>
+          <li>
+            <OverlayTooltip id={`${idPrefix}-tooltip`} tooltip={msg.userSettings()} placement='bottom'>
+              <Link to='/settings' className='nav-item-iconic'>
+                <Icon
+                  name='cog'
+                  type='fa'
+                />
+              </Link>
             </OverlayTooltip>
           </li>
           <UserMenu />

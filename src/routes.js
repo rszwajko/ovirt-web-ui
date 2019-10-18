@@ -62,6 +62,18 @@ export default function getRoutes (vms) {
         closeable: true,
         type: DIALOG_PAGE_TYPE,
       },
+      {
+        path: '/vms-settings/:id+',
+        title: msg.vmSettings(),
+        component: VmSettingsPage,
+        toolbars: () => <div id='settings-toolbar' />,
+        closeable: true,
+        isToolbarFullWidth: true,
+        type: VM_SETTINGS_PAGE_TYPE,
+        pageProps: {
+          isMultiSelect: true,
+        },
+      },
 
       {
         path: '/vm/:id',
@@ -80,8 +92,8 @@ export default function getRoutes (vms) {
             type: CONSOLE_PAGE_TYPE,
           },
           {
-            path: '/vm/:id/settings',
-            title: (match) => 'settings' || match.params.id,
+            path: '/vm/:id+/settings',
+            title: msg.settings(),
             component: VmSettingsPage,
             toolbars: () => <div id='settings-toolbar' />,
             closeable: true,
@@ -100,7 +112,7 @@ export default function getRoutes (vms) {
       {
         path: '/settings',
         exact: true,
-        title: () => 'Settings',
+        title: msg.accountSettings(),
         component: GlobalSettingsPage,
         toolbars: () => <div id='settings-toolbar' />,
         closeable: true,

@@ -32,35 +32,36 @@ class VmSettingsPage extends React.Component {
   constructor (props) {
     super(props)
     this.state = {
-      vmId: undefined,
+      vmIds: [],
     }
   }
 
   static getDerivedStateFromProps (props, state) {
-    if (state.vmId !== props.match.params.id) {
-      const vmId = props.match.params.id
-      return { vmId }
+    const ids = props.match.params.id.split('/')
+    if (ids.filter(n => !state.vmIds.includes(n)).length > 0) {
+      return { vmIds: ids }
     }
 
     return null
   }
 
   render () {
-    const { vms } = this.props
-    const { vmId } = this.state
+    const { vms, route } = this.props
+    const { vmIds } = this.state
 
-    if (vmId && vms.getIn(['vms', vmId])) {
-      return (<VmSettings vm={vms.getIn(['vms', vmId])} />)
+    if (vmIds.length > 0 && vmIds.filter(n => !vms.get('vms').keySeq().includes(n)).length === 0) {
+      return (<VmSettings selectedVms={vmIds} {...route.pageProps} />)
     }
 
     // TODO: Add handling for if the fetch runs but fails (FETCH-FAIL), see issue #631
-    console.info(`VmSettingsPage: VM id cannot be found: ${vmId}`)
+    console.info(`VmSettingsPage: VM id cannot be found: ${vmIds}`)
     return null
   }
 }
 
 VmSettingsPage.propTypes = {
   vms: PropTypes.object.isRequired,
+  route: PropTypes.object.isRequired,
   match: RouterPropTypeShapes.match.isRequired,
 }
 const VmSettingsPageConnected = connect(

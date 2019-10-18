@@ -1,6 +1,5 @@
 {
   "cs": {
-    "SSHKey": "SSH Klíč",
     "about": "O aplikaci",
     "actionFailed": "{action} se nezdařilo",
     "actualStateVmIsIn": "Skutečný stav virtuálního stroje.",
@@ -20,7 +19,6 @@
     "close": "Zavřít",
     "cloudInit": "Cloud-Init",
     "cluster": "Cluster",
-    "connectAutomatically": "Připojit automaticky",
     "console": "Konzole",
     "consoleInUseContinue": "Konzole je používána, pokračovat?",
     "containsConfigurationAndDisksWhichWillBeUsedToCreateThisVm": "Obsahuje nastavení a jednotky datového úložiště, které budou použity k vytvoření tohoto virtuálního stroje. Upravte si nastavení jak potřebujete.",
@@ -156,7 +154,6 @@
     "yes": "Ano"
   },
   "de": {
-    "SSHKey": "SSH-Schlüssel",
     "about": "Über",
     "actionFailed": "{action} fehlgeschlagen",
     "actualStateVmIsIn": "Der tatsächliche Zustand, in dem sich die virtuelle Maschine befindet.",
@@ -197,7 +194,6 @@
     "confirmDelete": "Löschen bestätigen",
     "confirmRestore": "Wiederherstellen bestätigen",
     "connect": "Verbinden",
-    "connectAutomatically": "Automatisch verbinden",
     "console": "Konsole",
     "consoleInUseContinue": "Konsole in Gebrauch, fortfahren?",
     "containsConfigurationAndDisksWhichWillBeUsedToCreateThisVm": "Enthält die Konfigurierung und Disks, die verwendet werden, um diese virtuelle Maschine zu erstellen. Passen Sie sie nach Bedarf an.",
@@ -482,7 +478,6 @@
     "youHaveNoAllowedVnicProfiles": "Sie können NICs nicht erstellen oder bearbeiten, da Sie nicht die Berechtigung haben, vNIC-Profile im Data-Center der VM zu verwenden."
   },
   "es": {
-    "SSHKey": "Clave SSH",
     "about": "Acerca",
     "actionFailed": "La acción {action} falló",
     "actualStateVmIsIn": "El estado actual en el que se encuentra la máquina virtual.",
@@ -523,7 +518,6 @@
     "confirmDelete": "Confirmar eliminación",
     "confirmRestore": "Confirmar restauración",
     "connect": "Conectar",
-    "connectAutomatically": "Conectar automáticamente",
     "console": "Consola",
     "consoleInUseContinue": "Consola en uso, ¿continuar?",
     "containsConfigurationAndDisksWhichWillBeUsedToCreateThisVm": "Contiene la configuración y discos que serán usados para crear esta máquina virtual. Por favor, realice las personalizaciones oportunas.",
@@ -808,7 +802,6 @@
     "youHaveNoAllowedVnicProfiles": "No puede crear o editar las NIC porque no tiene permiso para usar ningún perfil vNIC en el centro de datos de la MV."
   },
   "fr": {
-    "SSHKey": "Clé SSH",
     "about": "À propos de",
     "actionFailed": "{action} a échoué",
     "actualStateVmIsIn": "L'état actuel de la machine virtuelle.",
@@ -849,7 +842,6 @@
     "confirmDelete": "Confirmer la suppression",
     "confirmRestore": "Confirmer la restauration",
     "connect": "Connexion",
-    "connectAutomatically": "Connexion automatique",
     "console": "Console",
     "consoleInUseContinue": "Console en cours d'utilisation, souhaitez-vous continuer ?",
     "containsConfigurationAndDisksWhichWillBeUsedToCreateThisVm": "Contient la configuration et les disques qui seront utilisés pour créer cette machine virtuelle. Veuillez personnaliser en fonction des besoins.",
@@ -1267,7 +1259,6 @@
     "yes": "Si"
   },
   "ja": {
-    "SSHKey": "ユーザーの公開鍵",
     "about": "バージョン情報",
     "actionFailed": "{action} が失敗しました",
     "actualStateVmIsIn": "仮想マシンの実際の状態",
@@ -1308,7 +1299,6 @@
     "confirmDelete": "削除の確認",
     "confirmRestore": "復元の確認",
     "connect": "接続",
-    "connectAutomatically": "自動的に接続する",
     "console": "コンソール",
     "consoleInUseContinue": "コンソールは使用中です。操作を続行しますか?",
     "containsConfigurationAndDisksWhichWillBeUsedToCreateThisVm": "この仮想マシンの作成に使用される設定とディスクが含まれています。必要に応じてカスタマイズしてください。",
@@ -1593,7 +1583,6 @@
     "youHaveNoAllowedVnicProfiles": "仮想マシンのデータセンターで vNIC プロファイルを使用するパーミッションがないので、NIC を作成または編集することはできません。"
   },
   "ko": {
-    "SSHKey": "SSH 키 ",
     "about": "정보 ",
     "actionFailed": "{action}에 실패했습니다 ",
     "actualStateVmIsIn": "가상 머신의 실제 상태입니다.",
@@ -1634,7 +1623,6 @@
     "confirmDelete": "삭제 확인",
     "confirmRestore": "복구 확인 ",
     "connect": "연결",
-    "connectAutomatically": "자동 연결",
     "console": "콘솔",
     "consoleInUseContinue": "콘솔이 사용 중입니다. 작업을 계속하시겠습니까? ",
     "containsConfigurationAndDisksWhichWillBeUsedToCreateThisVm": "이 가상 머신을 생성하는데 사용되는 설정 및 디스크가 포함되어 있습니다. 필요에 따라 사용자 정의하십시오.",
@@ -1919,7 +1907,6 @@
     "youHaveNoAllowedVnicProfiles": "가상 머신 데이터 센터에서 vNIC 프로파일을 사용할 수있는 권한이 없으므로 NIC를 만들거나 편집할 수 없습니다."
   },
   "pt-BR": {
-    "SSHKey": "Chave SSH",
     "about": "Sobre",
     "actionFailed": "falha ao {action}",
     "actualStateVmIsIn": "O estado atual no qual a máquina virtual está.",
@@ -1960,7 +1947,6 @@
     "confirmDelete": "Confirmar exclusão",
     "confirmRestore": "Confirmar restauração",
     "connect": "Conectar",
-    "connectAutomatically": "Conectar automaticamente",
     "console": "Console",
     "consoleInUseContinue": "Console em uso, deseja continuar?",
     "containsConfigurationAndDisksWhichWillBeUsedToCreateThisVm": "Contém a configuração e os discos que serão usados para criar essa máquina virtual. Personalize conforme necessário.",
@@ -2248,7 +2234,6 @@
     "cd": "CD"
   },
   "zh-CN": {
-    "SSHKey": "SSH 密钥",
     "about": "关于",
     "actionFailed": "{action} 失败",
     "actualStateVmIsIn": "虚拟机实际的状态。",
@@ -2289,7 +2274,6 @@
     "confirmDelete": "确认删除",
     "confirmRestore": "确认恢复",
     "connect": "连接",
-    "connectAutomatically": "自动连接",
     "console": "控制台",
     "consoleInUseContinue": "控制台在使用，需要继续？",
     "containsConfigurationAndDisksWhichWillBeUsedToCreateThisVm": "包括用来创建这个虚拟机的配置和磁盘。请根据需要对它们进行定制。",

@@ -3,7 +3,6 @@ import PropTypes from 'prop-types'
 
 import { Icon } from 'patternfly-react'
 import ConfirmationModal from '../VmActions/ConfirmationModal'
-import VmsSettingsList from './VmsSettingsList'
 import { msg } from '_/intl'
 
 class SaveConfirmationModal extends React.Component {
@@ -21,7 +20,7 @@ class SaveConfirmationModal extends React.Component {
     this.setState({ checkedVms })
   }
   render () {
-    const { show, onClose, onSave } = this.props
+    const { show, vms, onClose, onConfirm } = this.props
     return (
       <ConfirmationModal
         show={show}
@@ -31,21 +30,27 @@ class SaveConfirmationModal extends React.Component {
             <Icon type='pf' name='warning-triangle-o' />
             <div>
               <p className='lead'>{msg.areYouSureYouWantToMakeSettingsChanges()}</p>
-              <p>{msg.defaultSettingsWillBeApplied()}</p>
-              <VmsSettingsList onChange={this.handleVmSaveCheck} />
+              <p>{msg.changesWillBeMadeToFollowingVm()}</p>
+              <div>
+                <ul>
+                  {vms.map(vm => <li key={vm.get('id')}>{vm.get('name')}</li>)}
+                </ul>
+              </div>
+              <p>{msg.pressYesToConfirm()}</p>
             </div>
           </React.Fragment>
         }
-        confirm={{ title: msg.confirmChanges(), onClick: () => onSave(true, this.state.checkedVms) }}
+        confirm={{ title: msg.confirmChanges(), onClick: onConfirm }}
         onClose={onClose}
       />
     )
   }
 }
 SaveConfirmationModal.propTypes = {
+  vms: PropTypes.object.isRequired,
   show: PropTypes.bool,
   onClose: PropTypes.func.isRequired,
-  onSave: PropTypes.func.isRequired,
+  onConfirm: PropTypes.func.isRequired,
 }
 
 export default SaveConfirmationModal

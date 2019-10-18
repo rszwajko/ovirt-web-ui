@@ -3,7 +3,6 @@ import {
   SET_SSH_KEY,
   SET_OPTION,
   SET_OPTION_TO_VMS,
-  RESET_OPTIONS,
   SET_OPTIONS_SAVE_RESULTS,
 } from '_/constants'
 import { actionReducer } from './utils'
@@ -48,19 +47,6 @@ const options = actionReducer(initialState, {
       }
     }
     return options
-  },
-  [RESET_OPTIONS] (state, { payload: { vmId } }) {
-    if (!vmId) {
-      return state.set('options', Immutable.fromJS({
-        ssh: {
-          key: null,
-          id: undefined,
-        },
-        language: locale,
-        updateRate: AppConfiguration.schedulerFixedDelayInSeconds,
-      }))
-    }
-    return state.setIn(['vms', vmId], EMPTY_MAP)
   },
   [SET_SSH_KEY] (state, { payload: { key, id } }) {
     return state.setIn(['options', 'ssh'], { key: key || null, id })

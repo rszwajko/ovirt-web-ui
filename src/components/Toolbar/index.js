@@ -2,8 +2,11 @@ import React from 'react'
 import PropTypes from 'prop-types'
 import { connect } from 'react-redux'
 
-import { Toolbar } from 'patternfly-react'
+import { Toolbar, Icon } from 'patternfly-react'
+import { Link } from 'react-router-dom'
+import { msg } from '_/intl'
 import style from './style.css'
+import sharedStyle from '_/components/sharedStyle.css'
 import { RouterPropTypeShapes } from '_/propTypeShapes'
 import VmActions from '../VmActions'
 import VmConsoleSelector from '../VmConsole/VmConsoleSelector'
@@ -53,6 +56,13 @@ const VmConsoleToolbar = ({ match, vms, consoles }) => {
           disabled={!consoleStatus.includes(consoles.getIn(['vms', match.params.id, 'consoleStatus']))} />
       </div>
       <div className={style['console-toolbar-actions']}>
+        <Link to={`/vm/${match.params.id}/settings#console`} className={`btn btn-link ${sharedStyle['color-blue']} ${sharedStyle['settings-icon']}`}>
+          <Icon
+            name='cog'
+            type='fa'
+          />
+          {msg.consoleSettings()}
+        </Link>
         <div id='vm-console-toolbar-sendkeys' />
       </div>
     </div>

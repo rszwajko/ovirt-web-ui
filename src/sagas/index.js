@@ -257,7 +257,10 @@ function* refreshConsolePage ({ id }) {
 }
 
 function* refreshVmSettingsPage ({ id }) {
-  yield selectVmDetail(actionSelectVmDetail({ vmId: id }))
+  const ids = id.split('/')
+  for (let vmId of ids) {
+    yield selectVmDetail(actionSelectVmDetail({ vmId }))
+  }
 }
 
 const pagesRefreshers = {

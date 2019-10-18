@@ -17,7 +17,6 @@ import {
   httpPost,
   httpPut,
   httpDelete,
-  httpHead,
 } from './transport'
 
 import * as Transforms from './transform'
@@ -103,11 +102,6 @@ const OvirtApi = {
       url += `?follow=${additional.join(',')}`
     }
     return httpGet({ url })
-  },
-  isVmExist ({ vmId }: { vmId: string }): Promise<Object> {
-    assertLogin({ methodName: 'isVmExist' })
-    let url = `${AppConfiguration.applicationContext}/api/vms/${vmId}`
-    return httpHead({ url })
   },
   getVmsByPage ({ page, additional }: { page: number, additional: Array<string> }): Promise<Object> {
     assertLogin({ methodName: 'getVmsByPage' })
