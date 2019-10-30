@@ -258,9 +258,7 @@ function* refreshConsolePage ({ id }) {
 
 function* refreshVmSettingsPage ({ id }) {
   const ids = id.split('/')
-  for (let vmId of ids) {
-    yield selectVmDetail(actionSelectVmDetail({ vmId }))
-  }
+  yield fetchVmsByIds({ ids })
 }
 
 const pagesRefreshers = {
@@ -422,6 +420,17 @@ function* fetchVmsByCountVLower (action) {
   return fetchedVmIds
 }
 
+function* fetchVmsByIds ({ ids }) {
+  const allVms = yield callExternalAction('getVmsByIds', Api.getVmsByIds, { payload: { ids } })
+  const fetchedVmIds = []
+  if (allVms && allVms['vm']) { // array
+    const internalVms = allVms.vm.map(vm => Api.vmToInternal({ vm }))
+    internalVms.forEach(vm => fetchedVmIds.push(vm.id))
+
+    yield put(updateVms({ vms: internalVms }))
+  }
+}
+
 export function* putPermissionsInDisk (disk) {
   disk.permits = yield fetchPermits({ entityType: PermissionsType.DISK_TYPE, id: disk.id })
   disk.canUserEditDisk = canUserEditDisk(disk.permits)
@@ -530,7 +539,6 @@ export function* fetchCurrentUser () {
 
   if (user) {
     const internalUser = Api.userToInternal({ user })
-
     yield put(setUser({ user: internalUser }))
   }
 }
@@ -717,7 +725,7 @@ function* startVm (action) {
     result,
     conditional: ({ vm }) => isRunning(vm.status),
     onFinish: function* ({ vm }) {
-      const globalOptions = yield select(state => state.options.get('options'))
+      const globalOptions = yield select(state => state.options.get('global'))
       const vmOptions = yield select(state => state.options.getIn(['vms', vm.id]))
       const usedOptions = vmOptions || globalOptions
       if (usedOptions.get('autoConnect')) {
@@ -1104,7 +1112,7 @@ function* schedulerWithFixedDelay () {
 
   let enabled = true
   while (enabled) {
-    let delayInSeconds = yield select(state => state.options.getIn(['options', 'updateRate'], 60))
+    let delayInSeconds = yield select(state => state.options.getIn(['global', 'updateRate'], 60))
     console.log(`⏰ schedulerWithFixedDelay[${myId}] stoppable delay for: ${delayInSeconds}`)
     const { stopped } = yield race({
       stopped: take(STOP_SCHEDULER_FIXED_DELAY),
@@ -1124,9 +1132,9 @@ function* schedulerWithFixedDelay () {
     } else {
       console.log(`⏰ schedulerWithFixedDelay[${myId}] running after delay of: ${delayInSeconds}`)
 
-      const dontDisturb = yield select(state => state.options.getIn(['options', 'dontDisturb']))
-      const dontDisturbFor = yield select(state => state.options.getIn(['options', 'dontDisturbFor']))
-      const dontDisturbStart = yield select(state => state.options.getIn(['options', 'dontDisturbStart']))
+      const dontDisturb = yield select(state => state.options.getIn(['global', 'dontDisturb']))
+      const dontDisturbFor = yield select(state => state.options.getIn(['global', 'dontDisturbFor']))
+      const dontDisturbStart = yield select(state => state.options.getIn(['global', 'dontDisturbStart']))
 
       if (dontDisturb) {
         const remain = Date.now() - (dontDisturbStart + (dontDisturbFor * 60 * 1000))

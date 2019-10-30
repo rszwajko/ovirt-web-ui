@@ -1,4 +1,4 @@
-import { put, select } from 'redux-saga/effects'
+import { put } from 'redux-saga/effects'
 
 import Api from '_/ovirtapi'
 import { fileDownload } from '_/helpers'
@@ -49,8 +49,7 @@ export function* downloadVmConsole (action) {
      *Download console if type is spice or novnc is running already
      */
     if (data.indexOf('type=spice') > -1 || !isNoVNC) {
-      const options = yield select(state => state.options)
-      data = adjustVVFile({ data, options, vmId, usbFilter, isSpice })
+      data = yield adjustVVFile({ data, vmId, usbFilter, isSpice })
       fileDownload({ data, fileName: `console.vv`, mimeType: 'application/x-virt-viewer' })
       yield put(setConsoleStatus({ vmId, status: DOWNLOAD_CONSOLE }))
     } else {

@@ -499,6 +499,7 @@ export const messages: { [messageId: string]: MessageType } = {
   sendCtrlAltDel: 'Ctrl+Alt+Del',
   selectedVirtualMachines: 'Selected Virtual Machines',
   selectAllVirtualMachines: 'Select all virtual machines',
+  selectAllVms: 'Select All VMs',
   sessionExpired: {
     message: 'Your session is about to timeout due to inactivity.',
     description: 'Primary message for SessionTimeout modal component',
@@ -513,9 +514,9 @@ export const messages: { [messageId: string]: MessageType } = {
     description: '... of disk of virtual machine',
   },
   smartcard: 'Smartcard',
-  smartcardTooltip: 'Smartcard is a physical card that can be used to authenticate to VMs connected to a SPICE console.',
   smartcardDetails: 'Enable Smartcard for SPICE console',
   smartcardEnabled: 'Smartcard enabled:',
+  smartcardTooltip: 'Smartcard is a physical card that can be used to authenticate to VMs connected to a SPICE console.',
   snapshot: 'Snapshots',
   snapshotRestore: 'Restore Snapshot',
   snapshotDelete: 'Delete Snapshot',

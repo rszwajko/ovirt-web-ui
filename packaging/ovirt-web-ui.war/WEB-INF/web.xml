@@ -92,6 +92,8 @@
         <servlet-name>index</servlet-name>
         <url-pattern>/vm/*</url-pattern>
         <url-pattern>/pool/*</url-pattern>
+        <url-pattern>/settings/*</url-pattern>
+        <url-pattern>/vms-settings/*</url-pattern>
     </servlet-mapping>
 
     <servlet-mapping>

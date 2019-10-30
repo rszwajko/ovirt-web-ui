@@ -83,8 +83,11 @@ const VmConsoleToolbarConnected = connect(
   })
 )(VmConsoleToolbar)
 
+const SettingsToolbar = () => <div id='settings-toolbar' />
+
 export {
   VmDetailToolbarConnected as VmDetailToolbar,
   VmConsoleToolbarConnected as VmConsoleToolbar,
   VmsListToolbar,
+  SettingsToolbar,
 }

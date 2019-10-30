@@ -119,6 +119,11 @@ const OvirtApi = {
     }
     return httpGet({ url })
   },
+  getVmsByIds ({ ids }: { ids: Array<string> }): Promise<Object> {
+    assertLogin({ methodName: 'getVmsByIds' })
+    let url = `${AppConfiguration.applicationContext}/api/vms?search=${ids.map(id => `id=${id}`).join(' OR')} SORTBY NAME ASC`
+    return httpGet({ url })
+  },
   shutdown ({ vmId, force }: { vmId: string, force: boolean }): Promise<Object> {
     assertLogin({ methodName: 'shutdown' })
     let restMethod = 'shutdown'

@@ -53,8 +53,12 @@ class VmSettingsPage extends React.Component {
       return (<VmSettings selectedVms={vmIds} {...route.pageProps} />)
     }
 
-    // TODO: Add handling for if the fetch runs but fails (FETCH-FAIL), see issue #631
-    console.info(`VmSettingsPage: VM id cannot be found: ${vmIds}`)
+    const inersection = vmIds.filter(n => vms.get('missedVms').has(n))
+    if (inersection.length > 0) {
+      console.info(`VmSettingsPage: VM ids cannot be found: ${inersection.join(', ')}`)
+      return <Handler404 />
+    }
+
     return null
   }
 }
@@ -68,7 +72,6 @@ const VmSettingsPageConnected = connect(
   (state) => ({
     vms: state.vms,
   }),
-  (dispatch) => ({})
 )(VmSettingsPage)
 
 /**

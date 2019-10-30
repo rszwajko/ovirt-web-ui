@@ -84,7 +84,7 @@ function* handleSavingResults (results, meta) {
 }
 
 export function* saveGlobalOptions (action) {
-  const sshId = yield select((state) => state.options.getIn(['options', 'ssh', 'id']))
+  const sshId = yield select((state) => state.options.getIn(['global', 'ssh', 'id']))
   const userId = yield select((state) => state.config.getIn(['user', 'id']))
 
   const res = yield all(

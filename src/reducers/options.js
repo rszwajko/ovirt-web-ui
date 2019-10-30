@@ -14,7 +14,7 @@ const EMPTY_MAP = Immutable.fromJS({})
 
 const optionsFromStorage = JSON.parse(loadFromLocalStorage('options')) || (
   {
-    options: {
+    global: {
       ssh: {
         key: null,
         id: undefined,
@@ -31,7 +31,7 @@ const initialState = Immutable.fromJS({ ...optionsFromStorage, results: {} })
 const options = actionReducer(initialState, {
   [SET_OPTION] (state, { payload: { key, value, vmId } }) {
     if (!vmId) {
-      return state.setIn(['options', key], Immutable.fromJS(value))
+      return state.setIn(['global', key], Immutable.fromJS(value))
     }
     return state.updateIn(['vms', vmId], (options = EMPTY_MAP) => options.set(key, Immutable.fromJS(value)))
   },
@@ -49,7 +49,7 @@ const options = actionReducer(initialState, {
     return options
   },
   [SET_SSH_KEY] (state, { payload: { key, id } }) {
-    return state.setIn(['options', 'ssh'], { key: key || null, id })
+    return state.setIn(['global', 'ssh'], Immutable.fromJS({ key: key || null, id }))
   },
   [SET_OPTIONS_SAVE_RESULTS] (state, { payload: { correlationId, status, details } }) {
     return state.setIn(['results', correlationId], { status, details })

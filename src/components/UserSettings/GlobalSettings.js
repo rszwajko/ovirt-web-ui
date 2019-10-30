@@ -70,11 +70,11 @@ class GlobalSettings extends Component {
     super(props)
     this.state = {
       values: {
-        sshKey: props.options.getIn(['options', 'ssh', 'key']),
-        language: props.options.getIn(['options', 'language']) || locale,
-        dontDisturb: props.options.getIn(['options', 'dontDisturb']) || false,
-        dontDisturbFor: props.options.getIn(['options', 'dontDisturbFor']) || dontDisturbList[0].id,
-        updateRate: props.options.getIn(['options', 'updateRate']) || 60,
+        sshKey: props.options.getIn(['global', 'ssh', 'key']),
+        language: props.options.getIn(['global', 'language']) || locale,
+        dontDisturb: props.options.getIn(['global', 'dontDisturb']) || false,
+        dontDisturbFor: props.options.getIn(['global', 'dontDisturbFor']) || dontDisturbList[0].id,
+        updateRate: props.options.getIn(['global', 'updateRate']) || 60,
       },
     }
     this.handleChange = this.handleChange.bind(this)
@@ -89,11 +89,12 @@ class GlobalSettings extends Component {
 
   updateSshKey (prevProps, prevState) {
     const { options } = prevProps
-    const prevSshKey = options.getIn(['options', 'ssh', 'key'])
-    if (!prevSshKey && prevSshKey !== this.props.options.getIn(['options', 'ssh', 'key']) && prevState.values.sshKey === prevSshKey) {
+    const prevSshKey = options.getIn(['global', 'ssh', 'key'])
+    const currSshKey = this.props.options.getIn(['global', 'ssh', 'key'])
+    if (!prevSshKey && prevSshKey !== currSshKey && prevState.values.sshKey === prevSshKey) {
       this.setState(state => {
         const values = { ...state.values }
-        values.sshKey = this.props.options.getIn(['options', 'ssh', 'key'])
+        values.sshKey = currSshKey
         return { values }
       })
     }

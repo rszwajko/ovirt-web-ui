@@ -147,7 +147,7 @@ class VmActions extends React.Component {
       consoleProtocol = 'Console in use'
     }
 
-    const mainOptions = options.getIn(['vms', vm.get('id')]) ? options.getIn(['vms', vm.get('id')]) : options.get('options')
+    const mainOptions = options.getIn(['vms', vm.get('id')]) ? options.getIn(['vms', vm.get('id')]) : options.get('global')
 
     const vncConsole = vm.get('consoles').find(c => c.get('protocol') === 'vnc')
     const hasRdp = isWindows(vm.getIn(['os', 'type']))
@@ -275,7 +275,7 @@ class VmActions extends React.Component {
     const status = vm.get('status')
 
     const actions = this.getDefaultActions()
-    const mainOptions = options.getIn(['vms', vm.get('id')]) ? options.getIn(['vms', vm.get('id')]) : options.get('options')
+    const mainOptions = options.getIn(['vms', vm.get('id')]) ? options.getIn(['vms', vm.get('id')]) : options.get('global')
 
     idPrefix = `${idPrefix}-actions`
 

@@ -3,7 +3,7 @@ import PropTypes from 'prop-types'
 import Immutable from 'immutable'
 
 import { connect } from 'react-redux'
-import { push } from 'connected-react-router'
+import { push, replace } from 'connected-react-router'
 import { saveVmsOptions, getByPage } from '_/actions'
 import { msg } from '_/intl'
 import naturalCompare from 'string-natural-compare'
@@ -32,7 +32,7 @@ class VmSettings extends Component {
   constructor (props) {
     super(props)
     this.isMultiSelected = props.isMultiSelect
-    const globalSettings = props.options.get('options', EMPTY_MAP)
+    const globalSettings = props.options.get('global', EMPTY_MAP)
     const vmSettings = !this.isMultiSelected ? props.options.getIn(['vms', props.selectedVms[0]], EMPTY_MAP) : EMPTY_MAP
     this.state = {
       values: {
@@ -66,6 +66,12 @@ class VmSettings extends Component {
 
   handleCancel () {
     this.props.goToVmPage()
+  }
+
+  componentDidUpdate (prevProp, prevState) {
+    if (prevState.selectedVms !== this.state.selectedVms) {
+      this.props.updateUrl(this.state.selectedVms)
+    }
   }
 
   handleVmCheck (vmId) {
@@ -306,6 +312,7 @@ VmSettings.propTypes = {
   saveOptions: PropTypes.func.isRequired,
   goToVmPage: PropTypes.func.isRequired,
   loadAnotherPage: PropTypes.func.isRequired,
+  updateUrl: PropTypes.func.isRequired,
 }
 
 export default connect(
@@ -315,15 +322,16 @@ export default connect(
     vms: state.vms,
   }),
 
-  (dispatch, { selectedVms }) => ({
+  (dispatch, { selectedVms, isMultiSelect }) => ({
     saveOptions: (values, vmIds, correlationId) => dispatch(saveVmsOptions({ values, vmIds }, { correlationId })),
     goToVmPage: () => {
-      if (selectedVms.length === 1) {
+      if (!isMultiSelect) {
         dispatch(push(`/vm/${selectedVms[0]}`))
       } else {
         dispatch(push('/'))
       }
     },
     loadAnotherPage: (page) => dispatch(getByPage({ page })),
+    updateUrl: (selectedVms) => dispatch(replace(`/vms-settings/${selectedVms.join('/')}`)),
   })
 )(VmSettings)

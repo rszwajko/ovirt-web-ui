@@ -20,14 +20,23 @@ import Loader, { SIZES } from '../Loader'
 const VmsSettingsButton = ({ checkedVms = [] }) => {
   const container = document.getElementById('vm-settings-btn-box')
   if (container) {
-    return ReactDOM.createPortal(
-      <Link to={`/vms-settings/${checkedVms.join('/')}`} className={`btn btn-default ${sharedStyle['settings-icon']}`} disabled={checkedVms.length === 0}>
+    const link = checkedVms.length > 0
+      ? <Link to={`/vms-settings/${checkedVms.join('/')}`} className={`btn btn-default ${sharedStyle['settings-icon']}`} disabled={checkedVms.length === 0}>
         <Icon
           name='cog'
           type='fa'
         />
         {msg.vmSettings()}
-      </Link>,
+      </Link>
+      : <span className={`btn btn-default ${sharedStyle['settings-icon']} disabled`}>
+        <Icon
+          name='cog'
+          type='fa'
+        />
+        {msg.vmSettings()}
+      </span>
+    return ReactDOM.createPortal(
+      link,
       container
     )
   }
@@ -42,7 +51,7 @@ const SelectAllVmsButton = ({ onClick }) => {
   const container = document.getElementById('select-all-vms-btn-box')
   if (container) {
     return ReactDOM.createPortal(
-      <Button onClick={onClick} bsStyle='default'>Select All VMs</Button>,
+      <Button onClick={onClick} bsStyle='default'>{msg.selectAllVms()}</Button>,
       container
     )
   }

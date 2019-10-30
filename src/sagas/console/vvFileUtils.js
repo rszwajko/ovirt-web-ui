@@ -1,9 +1,12 @@
 
-export function adjustVVFile ({ data, options, usbFilter, isSpice, vmId }) {
+import { select } from 'redux-saga/effects'
+
+export function* adjustVVFile ({ data, usbFilter, isSpice, vmId }) {
+  const options = yield select(state => state.options)
   // __options__ can either be a plain JS object or ImmutableJS Map
   console.log('adjustVVFile options:', options)
-  const globalOptions = options.get('options')
-  const vmOptions = options.getIn(['options', vmId])
+  const globalOptions = options.get('global')
+  const vmOptions = options.getIn(['vms', vmId])
   const usedOptions = vmOptions || globalOptions
   if (usedOptions.get('fullScreenMode')) {
     data = data.replace(/^fullscreen=0/mg, 'fullscreen=1')

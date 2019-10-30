@@ -39,14 +39,14 @@ class ConsoleConfirmationModal extends React.Component {
       })
     } else {
       if (this.props.consoles.getIn(['modals', this.modalId, 'state']) === undefined) {
-        this.props.onClose()
+        this.props.onClose && this.props.onClose()
       }
     }
   }
 
   onConsoleConfirmationClose () {
     this.props.onConsoleSessionConfirmaClose({ modalId: this.modalId })
-    this.props.onClose()
+    this.props.onClose && this.props.onClose()
   }
 
   onConsoleDownload (skipSSO = false) {
@@ -103,7 +103,7 @@ ConsoleConfirmationModal.propTypes = {
   consoleId: PropTypes.string, // eslint-disable-line react/no-unused-prop-types
   onDownloadConsole: PropTypes.func.isRequired,
   onConsoleSessionConfirmaClose: PropTypes.func.isRequired,
-  onClose: PropTypes.func.isRequired,
+  onClose: PropTypes.func,
   onOpen: PropTypes.func.isRequired,
 }
 

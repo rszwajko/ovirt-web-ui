@@ -48,7 +48,7 @@ export function* callExternalAction (methodName, method, action = {}, canBeMissi
     return result
   } catch (e) {
     const isVmNotDisturb = yield select(state => state.options.getIn(['vms', action.payload.vmId, 'disturb'], true))
-    const isDontDisturb = yield select(state => state.options.getIn(['options', 'dontDisturb'], false))
+    const isDontDisturb = yield select(state => state.options.getIn(['global', 'dontDisturb'], false))
     if (!canBeMissing && !(isDontDisturb && isVmNotDisturb)) {
       console.log(`External action exception: ${JSON.stringify(e)}`)
 

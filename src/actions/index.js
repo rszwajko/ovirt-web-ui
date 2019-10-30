@@ -196,10 +196,7 @@ export function setUser ({ user }) {
 }
 
 export function getUser () {
-  return {
-    type: GET_USER,
-    payload: {},
-  }
+  return { type: GET_USER }
 }
 
 export function setCpuTopologyOptions ({
