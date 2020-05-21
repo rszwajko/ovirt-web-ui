@@ -52,7 +52,7 @@ class SelectBox extends React.Component {
     return (
       <div style={{ width: '100%' }} id={id}>
         <div className='dropdown'>
-          <button className={`btn btn-default dropdown-toggle ${style['dropdown-button']}`} type='button' data-toggle='dropdown' id={`${id}-button-toggle`}>
+          <button disabled={this.props.disabled} className={`btn btn-default dropdown-toggle ${style['dropdown-button']}`} type='button' data-toggle='dropdown' id={`${id}-button-toggle`}>
             <span className={style['dropdown-button-text']} id={`${id}-button-text`} title={selectedItem && selectedItem.value}>
               {selectedItem ? selectedItem.value : NOBREAK_SPACE}
             </span>
@@ -83,6 +83,7 @@ SelectBox.propTypes = {
   /* eslint-enable react/no-unused-prop-types */
   onChange: PropTypes.func.isRequired, // (selectedId: string) => any
   id: PropTypes.string,
+  disabled: PropTypes.bool,
 }
 
 export default SelectBox

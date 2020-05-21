@@ -2,6 +2,7 @@
 //
 // Types used in the API and the types used internal to the App.
 //
+import { LOAD_USER_OPTIONS, SAVE_GLOBAL_OPTIONS, SAVE_VMS_OPTIONS } from '_/constants'
 
 export type ApiVmType = Object
 export type VmType = Object
@@ -149,7 +150,10 @@ export type ApiIconType = Object
 export type IconType = Object
 
 export type ApiSshKeyType = Object
-export type SshKeyType = Object
+export type SshKeyType = {
+  key: string,
+  id: string
+}
 
 export type ApiVmConsolesType = Object
 export type VmConsolesType = Object
@@ -158,7 +162,73 @@ export type ApiVmSessionsType = Object
 export type VmSessionsType = Object
 
 export type ApiUserType = Object
-export type UserType = Object
+export type VmSettingsType = {|
+  // merging logic assumes thee is no nested object
+  displayUnsavedWarnings: boolean,
+  confirmForceShutdown: boolean,
+  confirmVmDeleting: boolean,
+  confirmVmSuspending: boolean,
+  fullScreenMode: boolean,
+  ctrlAltDel: boolean,
+  smartcard: boolean,
+  autoConnect: boolean,
+  showNotifications: boolean
+|}
+export type GlobalUserSettingsType = {|
+  // merging logic assumes thee is no nested object
+  updateRate: number,
+  language: string,
+  showNotifications: boolean,
+  notificationsResumeTime: ?number,
+  preview: boolean
+|}
+
+export type UserOptionsType = {|
+  global: GlobalUserSettingsType,
+  ssh?: SshKeyType,
+  globalVm: VmSettingsType,
+  vms: { [key: string]: VmSettingsType }
+|}
+
+export type UserType = {
+  userName: string,
+  lastName: string,
+  email: string,
+  principal: string,
+  receivedOptions?: Object
+}
+
+export type LoadUserOptionsActionType = {
+  type: LOAD_USER_OPTIONS,
+  payload: {
+    userOptions: UserOptionsType
+  }
+}
+
+export type SaveGlobalOptionsActionType = {
+  type: SAVE_GLOBAL_OPTIONS,
+  payload: {|
+    updateRate?: number,
+    language?: string,
+    showNotifications?: boolean,
+    dontDisturbFor?: number,
+    sshKey?: string
+  |},
+  meta: {|
+    correlationId: string
+  |}
+}
+
+export type SaveVmsOptionsActionType = {
+  type: SAVE_VMS_OPTIONS,
+  payload: {|
+    values: VmSettingsType,
+    vmIds: Array<string>
+  |},
+  meta: {|
+    correlationId: string
+  |}
+}
 
 export type ApiPermissionType = {
   role: {

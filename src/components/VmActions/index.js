@@ -148,7 +148,7 @@ class VmActions extends React.Component {
       consoleProtocol = 'Console in use'
     }
 
-    const mainOptions = options.getIn(['vms', vm.get('id')]) ? options.getIn(['vms', vm.get('id')]) : options.get('global')
+    const mainOptions = options.getIn(['vms', vm.get('id')]) || options.get('globalVm')
 
     const vncConsole = vm.get('consoles').find(c => c.get('protocol') === 'vnc')
     const hasRdp = isWindows(vm.getIn(['os', 'type']))
@@ -300,7 +300,8 @@ class VmActions extends React.Component {
     const status = vm.get('status')
 
     const actions = this.getDefaultActions()
-    const mainOptions = options.getIn(['vms', vm.get('id')]) ? options.getIn(['vms', vm.get('id')]) : options.get('global')
+    const mainOptions = options.getIn(['vms', vm.get('id')]) || options.get('globalVm')
+    const preview = options.getIn(['global', 'preview'], false)
 
     idPrefix = `${idPrefix}-actions`
 
@@ -366,11 +367,12 @@ class VmActions extends React.Component {
           id={`${idPrefix}-button-remove`}
           onClick={() => onRemove({ preserveDisks: this.state.removePreserveDisks })}
         />
-        <DropdownKebab id={`${idPrefix}-kebab`} pullRight>
+        { preview && <DropdownKebab id={`${idPrefix}-kebab`} pullRight>
           <MenuItem onClick={goToSettings}>
             Edit settings
           </MenuItem>
         </DropdownKebab>
+        }
       </div>
     </React.Fragment>
     )

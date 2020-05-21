@@ -1,6 +1,5 @@
 {
   "cs": {
-    "SSHKey": "SSH Klíč",
     "about": "O aplikaci",
     "actionFailed": "{action} se nezdařilo",
     "actualStateVmIsIn": "Skutečný stav virtuálního stroje.",
@@ -20,7 +19,6 @@
     "close": "Zavřít",
     "cloudInit": "Cloud-Init",
     "cluster": "Cluster",
-    "connectAutomatically": "Připojit automaticky",
     "console": "Konzole",
     "consoleInUseContinue": "Konzole je používána, pokračovat?",
     "containsConfigurationAndDisksWhichWillBeUsedToCreateThisVm": "Obsahuje nastavení a jednotky datového úložiště, které budou použity k vytvoření tohoto virtuálního stroje. Upravte si nastavení jak potřebujete.",
@@ -157,7 +155,6 @@
     "yes": "Ano"
   },
   "de": {
-    "SSHKey": "SSH-Schlüssel",
     "about": "Über",
     "aboutDialogDocumentationLink": "Weiter Informationen finden Sie unter {link}",
     "aboutDialogDocumentationText": "Dokumentation",
@@ -215,7 +212,6 @@
     "confirmDelete": "Löschen bestätigen",
     "confirmRestore": "Wiederherstellen bestätigen",
     "connect": "Verbinden",
-    "connectAutomatically": "Automatisch verbinden",
     "connecting": "Verbindung wird hergestellt",
     "connectionFailConsoleInfo": "Verbindung zu Websocket-Proxy-Server kann nicht hergestellt werden. Überprüfen Sie das Websocket-Proxy-Zertifikat oder bitten Sie Ihren Administrator um Hilfe. Weitere Informationen finden Sie im <a href='https://www.ovirt.org/documentation/admin-guide/virt/console-client-resources.html'>Konsolenhandbuch</a>.<br/>Klicken Sie auf die Schaltfläche 'Verbinden', um die Konsolenverbindung wiederherzustellen.",
     "console": "Konsole",
@@ -626,7 +622,6 @@
     "youHaveNoAllowedVnicProfiles": "Sie können NICs nicht erstellen oder bearbeiten, da Sie nicht die Berechtigung haben, vNIC-Profile im Data-Center der VM zu verwenden."
   },
   "es": {
-    "SSHKey": "Clave SSH",
     "about": "Acerca de",
     "aboutDialogDocumentationLink": "Para más información, consulte {link}.",
     "aboutDialogDocumentationText": "Documentación",
@@ -684,7 +679,6 @@
     "confirmDelete": "Confirmar eliminación",
     "confirmRestore": "Confirmar restauración",
     "connect": "Conectar",
-    "connectAutomatically": "Conectar automáticamente",
     "connecting": "Conectando",
     "connectionFailConsoleInfo": "No es posible conectarse al servidor de proxy del enchufe de red. Verifique su certificado del proxy del enchufe de red o pídale ayuda a su administrador. Para obtener más información, consulte <a href='https://www.ovirt.org/documentation/admin-guide/virt/console-client-resources.html'>manual de la consola</a>.<br/>. Presione el botón \"Conectar\" para reconectar la consola.",
     "console": "Consola",
@@ -1095,7 +1089,6 @@
     "youHaveNoAllowedVnicProfiles": "No puede crear o editar las NIC porque no tiene permiso para usar ningún perfil vNIC en el centro de datos de la MV."
   },
   "fr": {
-    "SSHKey": "Clé SSH",
     "about": "À propos de",
     "aboutDialogDocumentationLink": "pour plus d'informations voir {link}",
     "aboutDialogDocumentationText": "Documentation",
@@ -1153,7 +1146,6 @@
     "confirmDelete": "Confirmer la suppression",
     "confirmRestore": "Confirmer la restauration",
     "connect": "Connexion",
-    "connectAutomatically": "Connexion automatique",
     "connecting": "Connexion en cours",
     "connectionFailConsoleInfo": "Impossible de se connecter au serveur proxy de websocket. Veuillez vérifier votre certificat de serveur proxy de websocket ou demander de l'aide à votre administrateur. Pour de plus amples informations, veuillez consulter  <a href='https://www.ovirt.org/documentation/admin-guide/virt/console-client-resources.html'>console manual</a>.<br/>Appuyer sur le bouton 'Connexion' pour vous reconnecter à la console",
     "console": "Console",
@@ -1638,7 +1630,6 @@
     "yes": "Si"
   },
   "ja": {
-    "SSHKey": "ユーザーの公開鍵",
     "about": "バージョン情報",
     "aboutDialogDocumentationLink": "詳細は {link} を参照してください",
     "aboutDialogDocumentationText": "ドキュメント",
@@ -1696,7 +1687,6 @@
     "confirmDelete": "削除の確認",
     "confirmRestore": "復元の確認",
     "connect": "接続",
-    "connectAutomatically": "自動的に接続する",
     "connecting": "接続中",
     "connectionFailConsoleInfo": "Websocket プロキシーサーバーに接続できません。Websocket プロキシー証明書を確認するか、管理者にお問い合わせください。詳細は、<a href='https://www.ovirt.org/documentation/admin-guide/virt/console-client-resources.html'>console manual</a> を参照してください。<br/>コンソールを再接続するには 'Connect' ボタンを押してください。",
     "console": "コンソール",
@@ -2107,7 +2097,6 @@
     "youHaveNoAllowedVnicProfiles": "仮想マシンのデータセンターで vNIC プロファイルを使用するパーミッションがないので、NIC を作成または編集することはできません。"
   },
   "ko": {
-    "SSHKey": "SSH 키 ",
     "about": "정보 ",
     "aboutDialogDocumentationLink": "자세한 내용은 {link}를 참조하십시오",
     "aboutDialogDocumentationText": "문서",
@@ -2165,7 +2154,6 @@
     "confirmDelete": "삭제 확인",
     "confirmRestore": "복구 확인 ",
     "connect": "연결",
-    "connectAutomatically": "자동 연결",
     "connecting": "연결 중",
     "connectionFailConsoleInfo": "websocket 프록시 서버에 연결할 수 없습니다. websocket 프록시 인증서를 확인하거나 시스템 관리자에게 문의하십시오. 자세한 내용은  <a href='https://www.ovirt.org/documentation/admin-guide/virt/console-client-resources.html'>console manual</a>을 참조하십시오. 콘솔을 다시 연결하려면 '연결' 버튼을 클릭하십시오.",
     "console": "콘솔",
@@ -2576,7 +2564,6 @@
     "youHaveNoAllowedVnicProfiles": "가상 머신 데이터 센터에서 vNIC 프로파일을 사용할 수있는 권한이 없으므로 NIC를 만들거나 편집할 수 없습니다."
   },
   "pt-BR": {
-    "SSHKey": "Chave SSH",
     "about": "Sobre",
     "aboutDialogDocumentationLink": "Para mais informações, consulte {link}",
     "aboutDialogDocumentationText": "Documentação",
@@ -2634,7 +2621,6 @@
     "confirmDelete": "Confirmar exclusão",
     "confirmRestore": "Confirmar restauração",
     "connect": "Conectar",
-    "connectAutomatically": "Conectar automaticamente",
     "connecting": "Conectando",
     "connectionFailConsoleInfo": "Não é possível conectar ao servidor proxy do WebSocket. Verifique seu certificado proxy do WebSocket ou peça ajuda ao administrador. Para obter mais informações consulte o <a href='https://www.ovirt.org/documentation/admin-guide/virt/console-client-resources.html'>manual do console</a>.<br/>Pressione o botão \"Conectar\" para conectar-se novamente ao console.",
     "console": "Console",
@@ -3045,7 +3031,6 @@
     "youHaveNoAllowedVnicProfiles": "Não é possível criar ou editar NICs porque você não tem permissão para usar perfis de vNIC no data center da MV."
   },
   "zh-CN": {
-    "SSHKey": "SSH 密钥",
     "about": "关于",
     "aboutDialogDocumentationLink": "更多信息 {link}",
     "aboutDialogDocumentationText": "文档",
@@ -3103,7 +3088,6 @@
     "confirmDelete": "确认删除",
     "confirmRestore": "确认恢复",
     "connect": "连接",
-    "connectAutomatically": "自动连接",
     "connecting": "连接",
     "connectionFailConsoleInfo": "无法连接到 websocket 代理服务器。请检查 websocket 代理证书，请联系您的系统管理员以获得帮助。如需更多信息，请参阅 <a href='https://www.ovirt.org/documentation/admin-guide/virt/console-client-resources.html'>console manual</a>。<br/>点'连接'按钮重新连接控制台。",
     "console": "控制台",

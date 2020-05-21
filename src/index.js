@@ -8,7 +8,6 @@
 import React from 'react'
 import ReactDOM from 'react-dom'
 import { Provider } from 'react-redux'
-import { IntlProvider } from 'react-intl'
 import { type Task } from 'redux-saga'
 
 import '_/logger' // initialize our console logging overlay
@@ -20,13 +19,13 @@ import 'patternfly-react/dist/css/patternfly-react.css'
 import './index-nomodules.css'
 import * as branding from '_/branding'
 
-import { getSelectedMessages, locale } from '_/intl'
 import configureStore from '_/store'
 import Selectors from '_/selectors'
 import AppConfiguration, { readConfiguration } from '_/config'
 import { login } from '_/actions'
 
 import App from './App'
+import ConnectedIntlProvider from './intl/ConnectedIntlProvider'
 import GlobalErrorBoundary from './GlobalErrorBoundary'
 
 // Patternfly dependencies
@@ -42,9 +41,9 @@ function renderApp (store: Object, errorBridge: Object) {
   ReactDOM.render(
     <GlobalErrorBoundary errorBridge={errorBridge} store={store}>
       <Provider store={store}>
-        <IntlProvider locale={locale} messages={getSelectedMessages()}>
+        <ConnectedIntlProvider>
           <App history={store.history} />
-        </IntlProvider>
+        </ConnectedIntlProvider>
       </Provider>
     </GlobalErrorBoundary>,
 

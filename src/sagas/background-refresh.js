@@ -1,4 +1,3 @@
-import { refreshUserSettingsPage } from './options'
 import {
   all,
   call,
@@ -24,8 +23,9 @@ import {
   fetchSinglePool,
   fetchSingleVm,
   fetchVms,
-  fetchVmsByIds,
+  fetchCurrentUser,
   selectVmDetail,
+  refreshMainPage,
 } from './index'
 import { fetchIsoFiles } from './storageDomains'
 
@@ -66,9 +66,9 @@ const pagesRefreshers = {
   [C.DETAIL_PAGE_TYPE]: refreshDetailPage,
   [C.CREATE_PAGE_TYPE]: refreshCreatePage,
   [C.CONSOLE_PAGE_TYPE]: refreshConsolePage,
-  [C.SETTINGS_PAGE_TYPE]: refreshUserSettingsPage,
+  [C.SETTINGS_PAGE_TYPE]: fetchCurrentUser,
   [C.VM_SETTINGS_PAGE_TYPE]: refreshVmSettingsPage,
-
+  [C.MULTI_VM_SETTINGS_PAGE_TYPE]: refreshMultiVmSettingsPage,
 }
 
 function* getIdsByType (type) {
@@ -148,8 +148,17 @@ function* refreshListPage ({ shallowFetch, onNavigation, onSchedule }) {
 }
 
 function* refreshVmSettingsPage ({ id }) {
-  const ids = id.split('/')
-  yield fetchVmsByIds({ ids })
+  yield all([
+    fetchSingleVm(Actions.getSingleVm({ vmId: id })),
+    fetchCurrentUser(),
+  ])
+}
+
+function* refreshMultiVmSettingsPage ({ id }) {
+  yield all([
+    refreshMainPage({}),
+    fetchCurrentUser(),
+  ])
 }
 
 function* refreshDetailPage ({ id, onNavigation, onSchedule }) {
@@ -217,15 +226,10 @@ function* schedulerWithFixedDelay (delayInSeconds = AppConfiguration.schedulerFi
       continue
     }
 
-    const dontDisturb = yield select(state => state.options.getIn(['global', 'dontDisturb']))
-    const dontDisturbFor = yield select(state => state.options.getIn(['global', 'dontDisturbFor']))
-    const dontDisturbStart = yield select(state => state.options.getIn(['global', 'dontDisturbStart']))
-
-    if (dontDisturb) {
-      const remain = Date.now() - (dontDisturbStart + (dontDisturbFor * 60 * 1000))
-      if (remain > 0) {
-        yield put(Actions.saveOption({ key: 'dontDisturb', value: false }))
-      }
+    const showNotifications = yield select(state => state.options.getIn(['global', 'showNotifications']))
+    const notificationsResumeTime = yield select(state => state.options.getIn(['global', 'notificationsResumeTime']))
+    if (!showNotifications && Date.now() > notificationsResumeTime) {
+      yield put(Actions.saveOption({ key: ['global', 'showNotifications'], value: true }))
     }
 
     const oVirtVersion = yield select(state => state.config.get('oVirtApiVersion'))

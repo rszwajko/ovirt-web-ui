@@ -18,7 +18,7 @@ import style from './style.css'
 /**
  * Single icon-card in the list for a VM
  */
-const Vm = ({ vm, checked, icons, os, vms, onStart, onCheck }) => {
+const Vm = ({ vm, checked, icons, os, vms, onStart, onCheck, preview = false }) => {
   const idPrefix = `vm-${vm.get('name')}`
   const osName = getOsHumanName(vm.getIn(['os', 'type']))
   const icon = getVmIcon(icons, os, vm)
@@ -32,7 +32,7 @@ const Vm = ({ vm, checked, icons, os, vms, onStart, onCheck }) => {
   return (
     <BaseCard idPrefix={idPrefix}>
       <BaseCard.Header>
-        <Checkbox className={style['vm-checkbox']} checked={checked} onChange={onCheck} />
+        { preview && <Checkbox className={style['vm-checkbox']} checked={checked} onChange={onCheck} /> }
         <span className={sharedStyle['operating-system-label']} id={`${idPrefix}-os`}>{osName}</span>
         {isPoolVm && pool && <span className={style['pool-vm-label']} style={{ backgroundColor: pool.get('color') }}>{ pool.get('name') }</span>}
       </BaseCard.Header>
@@ -54,6 +54,7 @@ Vm.propTypes = {
   checked: PropTypes.bool,
   onStart: PropTypes.func.isRequired,
   onCheck: PropTypes.func.isRequired,
+  preview: PropTypes.bool,
 }
 
 export default withRouter(connect(
@@ -61,6 +62,7 @@ export default withRouter(connect(
     icons: state.icons,
     vms: state.vms,
     os: state.operatingSystems, // deep immutable, {[id: string]: OperatingSystem}
+    preview: state.options.getIn(['global', 'preview'], false),
   }),
   (dispatch, { vm }) => ({
     onStart: () => dispatch(startVm({ vmId: vm.get('id') })),

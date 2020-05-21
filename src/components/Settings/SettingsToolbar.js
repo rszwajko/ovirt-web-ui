@@ -1,8 +1,9 @@
 import React from 'react'
 import ReactDOM from 'react-dom'
 import PropTypes from 'prop-types'
-import { Toolbar } from 'patternfly-react'
+import { Toolbar, Icon } from 'patternfly-react'
 import { msg } from '_/intl'
+import ConfirmationModal from '../VmActions/ConfirmationModal'
 
 import style from './style.css'
 
@@ -10,6 +11,7 @@ class SettingsToolbar extends React.Component {
   constructor (props) {
     super(props)
     this.el = document.createElement('div')
+    this.state = { showConflictingChangesModal: false }
   }
 
   componentDidMount () {
@@ -26,7 +28,25 @@ class SettingsToolbar extends React.Component {
     }
   }
   render () {
-    const { onSave, onCancel } = this.props
+    const { onSave, onCancel, enableSave, staleFields = [] } = this.props
+
+    const conflictingChanges = !!staleFields.length
+
+    const hideModal = () => this.setState({ showConflictingChangesModal: false })
+
+    const modalBody = () => {
+      return <React.Fragment>
+        <Icon type='pf' name='warning-triangle-o' />
+        <div>
+          <p>{msg.conflictingChangesDetails()}</p>
+          <p>{msg.conflictingChangesList()}</p>
+          <ul>
+            { staleFields.map(label => <li key={label}>{label}</li>) }
+          </ul>
+        </div>
+      </React.Fragment>
+    }
+
     const body = <Toolbar className={style['toolbar']}>
       <Toolbar.RightContent>
         <button
@@ -39,14 +59,28 @@ class SettingsToolbar extends React.Component {
           {msg.cancel()}
         </button>
         <button
+          disabled={!enableSave}
           onClick={e => {
             e.preventDefault()
-            onSave()
+            if (!conflictingChanges) {
+              onSave()
+            } else {
+              this.setState({ showConflictingChangesModal: true })
+            }
           }}
           className='btn btn-primary'
         >
           {msg.save()}
         </button>
+        <ConfirmationModal
+          show={this.state.showConflictingChangesModal}
+          confirm={{
+            onClick: onSave,
+            title: msg.ok(),
+            type: 'warning' }}
+          onClose={hideModal}
+          title={msg.conflictingChanges()}
+          body={modalBody()} />
       </Toolbar.RightContent>
     </Toolbar>
     return ReactDOM.createPortal(
@@ -59,6 +93,8 @@ class SettingsToolbar extends React.Component {
 SettingsToolbar.propTypes = {
   onSave: PropTypes.func.isRequired,
   onCancel: PropTypes.func.isRequired,
+  enableSave: PropTypes.bool,
+  staleFields: PropTypes.array,
 }
 
 export default SettingsToolbar

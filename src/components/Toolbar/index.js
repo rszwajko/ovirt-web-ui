@@ -42,7 +42,7 @@ const VmDetailToolbarConnected = connect(
   })
 )(VmDetailToolbar)
 
-const VmConsoleToolbar = ({ match, vms, consoles }) => {
+const VmConsoleToolbar = ({ match, vms, consoles, preview = false }) => {
   if (vms.getIn(['vms', match.params.id])) {
     const consoleStatus = [INIT_CONSOLE, DOWNLOAD_CONSOLE]
     return <div className={`${style['console-toolbar']} container-fluid`}>
@@ -56,13 +56,13 @@ const VmConsoleToolbar = ({ match, vms, consoles }) => {
           disabled={!consoleStatus.includes(consoles.getIn(['vms', match.params.id, 'consoleStatus']))} />
       </div>
       <div className={style['console-toolbar-actions']}>
-        <Link to={`/vm/${match.params.id}/settings#console`} className={`btn btn-link ${sharedStyle['color-blue']} ${sharedStyle['settings-icon']}`}>
+        {preview && <Link to={`/vm/${match.params.id}/settings#console`} className={`btn btn-link ${sharedStyle['color-blue']} ${sharedStyle['settings-icon']}`}>
           <Icon
             name='cog'
             type='fa'
           />
           {msg.consoleSettings()}
-        </Link>
+        </Link>}
         <div id='vm-console-toolbar-sendkeys' />
       </div>
     </div>
@@ -74,12 +74,14 @@ VmConsoleToolbar.propTypes = {
   vms: PropTypes.object.isRequired,
   consoles: PropTypes.object.isRequired,
   match: RouterPropTypeShapes.match.isRequired,
+  preview: PropTypes.bool,
 }
 
 const VmConsoleToolbarConnected = connect(
-  (state) => ({
-    vms: state.vms,
-    consoles: state.consoles,
+  ({ vms, consoles, options }) => ({
+    vms,
+    consoles,
+    preview: options.getIn(['global', 'preview'], false),
   })
 )(VmConsoleToolbar)
 

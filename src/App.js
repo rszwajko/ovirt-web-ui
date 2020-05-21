@@ -52,7 +52,6 @@ const ConsoleConfirmationOpener = ({ consoles, vms }) => (
       consoles.get('modals')
         .filter((v, k) => k.startsWith('autoconnect-confirmation'))
         .map((v, k) => {
-          console.log(v.get('vmId'), vms.getIn(['vms', v.get('vmId')]))
           return <ConsoleConfirmationModal
             key={k}
             consoleId={v.get('consoleId')}

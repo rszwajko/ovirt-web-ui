@@ -26,6 +26,9 @@ import type {
   ApiEventType, EventType,
   ApiRoleType, RoleType,
   ApiUserType, UserType,
+  GlobalUserSettingsType,
+  VmSettingsType,
+  UserOptionsType,
 } from './types'
 
 import { isWindows } from '_/helpers'
@@ -950,13 +953,129 @@ const Event = {
   toApi: undefined,
 }
 
+function mapGlobal ({ updateRate, language, showNotifications, notificationsResumeTime, preview }: Object = {}): GlobalUserSettingsType {
+  return {
+    updateRate,
+    language,
+    showNotifications,
+    notificationsResumeTime,
+    preview,
+  }
+}
+
+function mapVm ({
+  displayUnsavedWarnings,
+  confirmForceShutdown,
+  confirmVmDeleting,
+  confirmVmSuspending,
+  fullScreenMode,
+  ctrlAltDel,
+  smartcard,
+  autoConnect,
+  showNotifications }: Object = {}): VmSettingsType {
+  return {
+    displayUnsavedWarnings,
+    confirmForceShutdown,
+    confirmVmDeleting,
+    confirmVmSuspending,
+    fullScreenMode,
+    ctrlAltDel,
+    smartcard,
+    autoConnect,
+    showNotifications,
+  }
+}
+
+function mapVms (vms: Object = {}): { [key: string]: VmSettingsType } {
+  const res = {}
+  Object.keys(vms).forEach(key => {
+    res[key] = mapVm(vms[key])
+  })
+  return res
+}
+
+function reverseMapVms (clientVms: { [key: string]: VmSettingsType }, serverVms: Object): Object {
+  const res = {}
+  // skip de-duplication
+  const keys = [ ...Object.keys(clientVms), ...Object.keys(serverVms) ]
+  keys.forEach(key => {
+    if (clientVms[key] !== undefined && serverVms[key] !== undefined) {
+      // merge vm
+      res[key] = {
+        // assume no nested objects
+        // values from the client overwrite all known properties
+        ...serverVms[key],
+        ...clientVms[key],
+      }
+    } else if (clientVms !== undefined) {
+      // add as-it-is
+      res[key] = clientVms[key]
+    }
+    // skip vms that are only on the server
+  })
+  return res
+}
+
+const UserOptions = {
+  toInternal: (receivedOptions: Object = {}): UserOptionsType => {
+    return {
+      global: mapGlobal(receivedOptions.global),
+      globalVm: mapVm(receivedOptions.globalVm),
+      vms: mapVms(receivedOptions.vms),
+      ssh: undefined,
+    }
+  },
+  toApi: (client: UserOptionsType, server: Object = {}): Object => {
+    const { global: serverGlobal = {}, globalVm: serverGlobalVm = {}, vms: serverVms = {}, ...serverRest } = server
+    const { global: clientGlobal = {}, globalVm: clientGlobalVm = {}, vms: clientVms = {} } = client
+
+    const merged = {
+      global: {
+        // assume no nested objects
+        // values from the client overwrite all known properties
+        ...serverGlobal,
+        ...clientGlobal,
+      },
+      globalVm: {
+        // assume no nested objects
+        // values from the client overwrite all known properties
+        ...serverGlobalVm,
+        ...clientGlobalVm,
+      },
+      // handle merging nested vms separately
+      vms: reverseMapVms(clientVms, serverVms),
+      // copy all unknown properties
+      ...serverRest,
+    }
+
+    const properties = Object.entries(merged)
+      .map(([key, value]) => ({
+        name: key,
+        // double encoding - value is transferred as a string
+        value: JSON.stringify(value),
+      }))
+
+    return {
+      user_options: {
+        property: properties,
+      },
+    }
+  },
+}
+
 const User = {
-  toInternal ({ user }: { user: ApiUserType }): UserType {
+  toInternal ({ user, user: { user_options: { property: user_options = [] } = {} } = {} }: { user: ApiUserType }): UserType {
+    const raw = Object.fromEntries(
+      // values are double encoded
+      user_options.map(({ name, value }) => ([ name, JSON.parse(value) ]))
+    )
+
     return {
       userName: user.user_name,
       lastName: user.last_name,
       email: user.email,
       principal: user.principal,
+      receivedOptions: raw,
     }
   },
 
@@ -991,4 +1110,5 @@ export {
   Event,
   Role,
   User,
+  UserOptions,
 }

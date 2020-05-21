@@ -5,27 +5,12 @@ import { connect } from 'react-redux'
 import { push } from 'connected-react-router'
 import { saveGlobalOptions } from '_/actions'
 import { FormControl, Switch } from 'patternfly-react'
-import { localeWithFullName, locale, msg } from '_/intl'
+import { localeWithFullName, msg } from '_/intl'
 import style from './style.css'
 
 import Settings from '../Settings'
+import SettingsBase from '../Settings/SettingsBase'
 import SelectBox from '../SelectBox'
-
-const valuesMapper = {
-  'language': (value) => value,
-  'sshKey': (value) => value,
-  'dontDisturb': (value) => value,
-  'updateRate': (value) => value,
-  'ctrlAltDel': (value) => value,
-  'fullScreenMode': (value) => value,
-  'disableNotifications': (e) => e.target.checked,
-  'displayUnsavedWarnings': (e) => e.target.checked,
-  'confirmForceShutdown': (e) => e.target.checked,
-  'confirmVmDeleting': (e) => e.target.checked,
-  'confirmVmSuspending': (e) => e.target.checked,
-  'autoConnect': (e) => e.target.checked,
-  'smartcard': (e) => e.target.checked,
-}
 
 const dontDisturbList = [
   {
@@ -69,39 +54,42 @@ class GlobalSettings extends Component {
   constructor (props) {
     super(props)
     this.state = {
-      values: {
-        sshKey: props.options.getIn(['global', 'ssh', 'key']),
-        language: props.options.getIn(['global', 'language']) || locale,
-        dontDisturb: props.options.getIn(['global', 'dontDisturb']) || false,
-        dontDisturbFor: props.options.getIn(['global', 'dontDisturbFor']) || dontDisturbList[0].id,
-        updateRate: props.options.getIn(['global', 'updateRate']) || 60,
+      defaultDontDisturbFor: dontDisturbList[0] && dontDisturbList[0].id,
+      config: {
+        ...props.config,
+      },
+      draftValues: {
+        ...props.currentValues,
+      },
+      baseValues: {
+        ...props.currentValues,
+      },
+      sentValues: {},
+      names: {
+        sshKey: msg.sshKey(),
+        language: msg.language(),
+        showNotifications: msg.dontDisturb(),
+        dontDisturbFor: msg.dontDisturbFor(),
+        updateRate: msg.uiRefresh(),
       },
     }
-    this.handleChange = this.handleChange.bind(this)
     this.handleCancel = this.handleCancel.bind(this)
     this.buildSections = this.buildSections.bind(this)
-    this.updateSshKey = this.updateSshKey.bind(this)
+    this.saveOptions = this.saveOptions.bind(this)
+    this.resetBaseValues = this.resetBaseValues.bind(this)
   }
 
-  handleChange (values) {
-    this.setState({ values })
+  resetBaseValues () {
+    const { currentValues } = this.props
+    const baseValues = { ...currentValues }
+    const sentValues = {}
+    this.setState({ sentValues, baseValues })
   }
 
-  updateSshKey (prevProps, prevState) {
-    const { options } = prevProps
-    const prevSshKey = options.getIn(['global', 'ssh', 'key'])
-    const currSshKey = this.props.options.getIn(['global', 'ssh', 'key'])
-    if (!prevSshKey && prevSshKey !== currSshKey && prevState.values.sshKey === prevSshKey) {
-      this.setState(state => {
-        const values = { ...state.values }
-        values.sshKey = currSshKey
-        return { values }
-      })
-    }
-  }
-
-  componentDidUpdate (prevProps, prevState) {
-    this.updateSshKey(prevProps, prevState)
+  saveOptions (values, correlationId) {
+    this.props.saveOptions(values, correlationId)
+    const sentValues = { ...values }
+    this.setState({ sentValues })
   }
 
   handleCancel () {
@@ -109,8 +97,7 @@ class GlobalSettings extends Component {
   }
 
   buildSections (onChange) {
-    const { config } = this.props
-    const { values } = this.state
+    const { draftValues, names, config, defaultDontDisturbFor } = this.state
     const idPrefix = 'global-user-settings'
     return {
       general: {
@@ -118,32 +105,32 @@ class GlobalSettings extends Component {
         fields: [
           {
             title: msg.username(),
-            body: <span>{config.getIn(['user', 'name'])}</span>,
+            body: <span>{config.userName}</span>,
           },
           {
             title: msg.email(),
-            body: <span>{config.getIn(['user', 'email'])}</span>,
+            body: <span>{config.email}</span>,
           },
           {
-            title: msg.language(),
+            title: names.language,
             body: <div className={style['half-width']}>
               <SelectBox
                 id={`${idPrefix}-language`}
                 items={localeWithFullName}
-                selected={values.language}
+                selected={draftValues.language}
                 onChange={onChange('language')}
               />
             </div>,
           },
           {
-            title: msg.sshKey(),
+            title: names.sshKey,
             tooltip: msg.sshKeyTooltip(),
             body: <div className={style['half-width']}>
               <FormControl
                 id={`${idPrefix}-ssh-key`}
                 componentClass='textarea'
                 onChange={e => onChange('sshKey')(e.target.value)}
-                value={values.sshKey}
+                value={draftValues.sshKey || ''}
               />
             </div>,
           },
@@ -154,12 +141,12 @@ class GlobalSettings extends Component {
         tooltip: msg.globalSettingsWillBeApplied(),
         fields: [
           {
-            title: msg.uiRefresh(),
+            title: names.updateRate,
             body: <div className={style['half-width']}>
               <SelectBox
                 id={`${idPrefix}-update-rate`}
                 items={updateRateList}
-                selected={values.updateRate}
+                selected={draftValues.updateRate}
                 onChange={onChange('updateRate')}
               />
             </div>,
@@ -171,24 +158,26 @@ class GlobalSettings extends Component {
         tooltip: msg.notificationSettingsAffectAllNotifications(),
         fields: [
           {
-            title: msg.dontDisturb(),
+            title: names.showNotifications,
             body: <Switch
               id={`${idPrefix}-dont-disturb`}
               bsSize='normal'
               title='normal'
-              value={values.dontDisturb}
-              onChange={(e, state) => onChange('dontDisturb')(state)}
+              value={!draftValues.showNotifications}
+              onChange={(e, dontDisturb) => {
+                onChange('showNotifications', 'dontDisturbFor')(!dontDisturb, draftValues.dontDisturbFor || defaultDontDisturbFor)
+              }}
             />,
           },
           {
-            title: msg.dontDisturbFor(),
+            title: names.dontDisturbFor,
             body: <div className={style['half-width']}>
               <SelectBox
                 id={`${idPrefix}-dont-disturb-for`}
                 items={dontDisturbList}
-                selected={values.dontDisturbFor}
+                selected={draftValues.dontDisturbFor || defaultDontDisturbFor}
                 onChange={onChange('dontDisturbFor')}
-                disabled={!values.dontDisturb}
+                disabled={draftValues.showNotifications}
               />
             </div>,
           },
@@ -198,32 +187,62 @@ class GlobalSettings extends Component {
   }
 
   render () {
-    const { saveOptions } = this.props
+    const { lastCorrelationId, currentValues } = this.props
+    const { draftValues, baseValues, sentValues, names } = this.state
+
+    const onChange = (field, dependendField) => {
+      return (value, dependendValue) => {
+        const values = { ...draftValues }
+        values[field] = value
+        if (dependendField) {
+          values[dependendField] = dependendValue
+        }
+        this.setState({ draftValues: values })
+      }
+    }
+
     return (
       <div className='container'>
         <Settings
-          buildSections={this.buildSections}
-          values={this.state.values}
-          mapper={valuesMapper}
-          onSave={saveOptions}
+          draftValues={draftValues}
+          baseValues={baseValues}
+          currentValues={currentValues}
+          sentValues={sentValues}
+          names={names}
+          lastCorrelationId={lastCorrelationId}
+          resetBaseValues={this.resetBaseValues}
+          onSave={this.saveOptions}
           onCancel={this.handleCancel}
-          onChange={this.handleChange}
-        />
+
+        >
+          <SettingsBase sections={this.buildSections(onChange)} />
+        </Settings>
       </div>
     )
   }
 }
 GlobalSettings.propTypes = {
+  currentValues: PropTypes.object.isRequired,
   config: PropTypes.object.isRequired,
-  options: PropTypes.object.isRequired,
+  lastCorrelationId: PropTypes.string,
   saveOptions: PropTypes.func.isRequired,
   goToMainPage: PropTypes.func.isRequired,
 }
 
 export default connect(
-  (state) => ({
-    config: state.config,
-    options: state.options,
+  ({ options, config }) => ({
+    config: {
+      userName: config.getIn(['user', 'name']),
+      email: config.getIn(['user', 'email']),
+    },
+    currentValues: {
+      sshKey: options.getIn(['ssh', 'key']),
+      language: options.getIn(['global', 'language']),
+      showNotifications: options.getIn(['global', 'showNotifications']),
+      dontDisturbFor: options.getIn(['global', 'dontDisturbFor']),
+      updateRate: options.getIn(['global', 'updateRate']),
+    },
+    lastCorrelationId: options.getIn(['results', 'global', 'correlationId'], ''),
   }),
 
   (dispatch) => ({

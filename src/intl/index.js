@@ -29,7 +29,7 @@ const options = JSON.parse(loadFromLocalStorage('options')) || {}
 /**
  * Currently selected locale
  */
-export const locale: string = getLocaleFromUrl() || (options.global && options.global.language) || getBrowserLocale() || DEFAULT_LOCALE
+export const locale: string = getLocaleFromUrl() || options.language || getBrowserLocale() || DEFAULT_LOCALE
 
 function getBrowserLocale (): ?string {
   if (window.navigator.language) {
@@ -88,7 +88,7 @@ function getLocaleLanguage (locale: string): string {
 /**
  * For React Intl purposes
  */
-export function getSelectedMessages (): { [MessageIdType]: string } {
+export function getSelectedMessages (locale: string): { [MessageIdType]: string } {
   return Object.assign({}, defaultMessages, translatedMessages[locale])
 }
 
@@ -243,7 +243,7 @@ export const localeWithFullName = [
   },
 ]
 
-function initializeReactIntl () {
+function initializeReactIntl (locale: string) {
   const selectedLocalData = localeDataMap[locale]
   if (!selectedLocalData) {
     console.warn(`No locale data found to initialize 'react-intl' library for locale '${locale}'.`)
@@ -253,4 +253,4 @@ function initializeReactIntl () {
   addLocaleData(...selectedLocalData)
 }
 
-initializeReactIntl()
+initializeReactIntl(locale)

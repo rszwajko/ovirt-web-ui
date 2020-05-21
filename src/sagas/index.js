@@ -45,6 +45,8 @@ import {
   removeActiveRequest,
   getVmCdRom,
   setVmsFilters,
+  loadUserOptions,
+  getSSHKey,
 } from '_/actions'
 
 import {
@@ -125,17 +127,6 @@ export function* transformAndPermitVm (vm) {
   internalVm.canUserUseConsole = canUserUseConsole(internalVm.userPermits)
 
   return internalVm
-}
-
-export function* fetchVmsByIds ({ ids }) {
-  const allVms = yield callExternalAction('getVmsByIds', Api.getVmsByIds, { payload: { ids } })
-  const fetchedVmIds = []
-  if (allVms && allVms['vm']) { // array
-    const internalVms = allVms.vm.map(vm => Api.vmToInternal({ vm }))
-    internalVms.forEach(vm => fetchedVmIds.push(vm.id))
-
-    yield put(updateVms({ vms: internalVms }))
-  }
 }
 
 export function* putPermissionsInDisk (disk) {
@@ -282,16 +273,24 @@ export function* fetchPools (action) {
 }
 
 export function* fetchCurrentUser () {
+  const userId = yield select((state) => state.config.getIn(['user', 'id']))
   const user = yield callExternalAction('user', Api.user, {
     payload: {
-      userId: yield select((state) => state.config.getIn(['user', 'id'])),
+      userId,
     },
   })
 
   if (user) {
-    const internalUser = Api.userToInternal({ user })
-    yield put(setUser({ user: internalUser }))
+    yield processUser(user)
+    yield put(getSSHKey({ userId }))
   }
+}
+
+export function* processUser (user) {
+  const internalUser = Api.userToInternal({ user })
+  const userOptions = Api.userOptionsToInternal(internalUser.receivedOptions)
+  yield put(setUser({ user: internalUser }))
+  yield put(loadUserOptions(userOptions))
 }
 
 export function* fetchSinglePool (action) {

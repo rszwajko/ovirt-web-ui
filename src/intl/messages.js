@@ -71,7 +71,10 @@ export const messages: { [messageId: string]: MessageType } = {
   cdCanOnlyChangeWhenVmRunning: 'CD can only be changed when the VM is running',
   cdromBoot: 'CD-ROM',
   changeCd: 'Change CD',
-  changesWasSavedSuccesfully: 'Changes was saved succesfully!',
+  changesSavedSuccesfully: {
+    message: 'Changes to settings saved succesfully!',
+    description: 'Message displayed when all user settings have been saved successfully',
+  },
   changesWillBeMadeToFollowingVm: 'Settings changes will be made to the following VMs:',
   clear: 'Clear',
   clearAll: 'Clear all',
@@ -101,6 +104,18 @@ export const messages: { [messageId: string]: MessageType } = {
   confirmSuspendingVm: 'Confirm suspending a virtual machine',
   confirmSuspendingVmDetails: 'Require confirmation before suspending a virtual machine',
   confirmRestore: 'Confirm Restore',
+  conflictingChanges: {
+    message: 'Conflicting changes',
+    description: 'Conflicting changes modal dialog - title',
+  },
+  conflictingChangesDetails: {
+    message: 'The data has changed on the server while editing. Do you wish to overwite those changes?',
+    description: 'Conflicting changes modal dialog - main message',
+  },
+  conflictingChangesList: {
+    message: 'Changed fields:',
+    description: 'Conflicting changes modal dialog - bottom part of the messge. List of conflicting fields will be displayed below in a horizontal list',
+  },
   connect: {
     message: 'Connect',
     description: 'Connect button for SSO authorization modal dialog.',
@@ -358,6 +373,14 @@ export const messages: { [messageId: string]: MessageType } = {
   failedToRetrieveVmDetails: 'Failed to retrieve VM details',
   failedToRetrieveVmDisks: 'Failed to retrieve VM disks',
   failedToRetrieveVmIcon: 'Failed to retrieve VM icon',
+  failedToSaveChangesToFields: {
+    message: 'Failed to save changes to:',
+    description: 'Some fields have not been saved. List of fields is displayed below in a horizontal list',
+  },
+  failedToSaveChanges: {
+    message: 'Failed to save changes to settings',
+    description: 'No fields have been saved',
+  },
   failedToShutdownVm: 'Failed to shutdown the VM',
   failedToStartVm: 'Failed to start the VM',
   failedToSuspendVm: 'Failed to suspend the VM',
@@ -476,6 +499,7 @@ export const messages: { [messageId: string]: MessageType } = {
   nicLinkUpTooltip: 'Link is Up',
   nicNoVnicAssigned: 'N/A',
   nicsTooltip: 'Connected VM network interfaces.',
+  no: 'No',
   noActiveStorageDomainInDataCenter: 'There is no active data storage domain in data center "{dataCenterName}"',
   noDisks: 'no disks',
   noError: 'No error',
@@ -597,7 +621,6 @@ export const messages: { [messageId: string]: MessageType } = {
   sshAuthorizedKeysTooltip: 'New line separated public SSH keys allowing for passwordless remote login.',
   sshKey: 'SSH Key',
   sshKeyTooltip: 'This public key provides access to the guest serial console via SSH authentication.',
-  someFieldsWasNotSaved: 'Some fields was not saved: {fields}',
   spiceConsole: 'SPICE Console',
   spiceConsoleOpen: 'Open SPICE Console',
   startVm: 'Start the VM',

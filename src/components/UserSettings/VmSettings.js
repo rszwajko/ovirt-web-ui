@@ -3,215 +3,179 @@ import PropTypes from 'prop-types'
 import Immutable from 'immutable'
 
 import { connect } from 'react-redux'
-import { push, replace } from 'connected-react-router'
-import { saveVmsOptions, getByPage } from '_/actions'
+import { saveVmsOptions } from '_/actions'
 import { msg } from '_/intl'
-import naturalCompare from 'string-natural-compare'
-import InfiniteScroll from 'react-infinite-scroller'
-import { Checkbox, Switch, Card, CardHeading, CardTitle } from 'patternfly-react'
 import Settings from '../Settings'
 import SaveConfirmationModal from './SaveConfirmationModal'
+import SettingsBase from '../Settings/SettingsBase'
+import OptionalCheckbox from './OptionalCheckbox'
+import OptionalSwitch from './OptionalSwitch'
 
 import style from './style.css'
 const EMPTY_MAP = Immutable.fromJS({})
 
-const valuesMapper = {
-  'dontDisturb': (value) => value,
-  'autoConnect': (e) => e.target.checked,
-  'ctrlAltDel': (value) => value,
-  'smartcard': (e) => e.target.checked,
-  'fullScreenMode': (value) => value,
-  'displayUnsavedWarnings': (e) => e.target.checked,
-  'confirmForceShutdown': (e) => e.target.checked,
-  'confirmVmDeleting': (e) => e.target.checked,
-  'confirmVmSuspending': (e) => e.target.checked,
-  'disturb': (value) => value,
-}
-
 class VmSettings extends Component {
   constructor (props) {
     super(props)
-    this.isMultiSelected = props.isMultiSelect
-    const globalSettings = props.options.get('global', EMPTY_MAP)
-    const vmSettings = !this.isMultiSelected ? props.options.getIn(['vms', props.selectedVms[0]], EMPTY_MAP) : EMPTY_MAP
     this.state = {
-      values: {
-        displayUnsavedWarnings: vmSettings.get('displayUnsavedWarnings', globalSettings.get('displayUnsavedWarnings', true)),
-        confirmForceShutdown: vmSettings.get('confirmForceShutdown', globalSettings.get('confirmForceShutdown', true)),
-        confirmVmDeleting: vmSettings.get('confirmVmDeleting', globalSettings.get('confirmVmDeleting', true)),
-        confirmVmSuspending: vmSettings.get('confirmVmSuspending', globalSettings.get('confirmVmSuspending', true)),
-        autoConnect: vmSettings.get('autoConnect', globalSettings.get('autoConnect', false)),
-        ctrlAltDel: vmSettings.get('ctrlAltDel', globalSettings.get('ctrlAltDel', false)),
-        smartcard: vmSettings.get('smartcard', globalSettings.get('smartcard', false)),
-        fullScreenMode: vmSettings.get('fullScreenMode', globalSettings.get('fullScreenMode', false)),
-        disturb: !vmSettings.get('disturb', false),
+
+      draftValues: {
+        ...props.currentValues,
       },
-      selectedVms: props.selectedVms,
+      baseValues: {
+        ...props.currentValues,
+      },
+      sentValues: {},
+      names: {
+        displayUnsavedWarnings: msg.displayUnsavedChangesWarnings(),
+        confirmForceShutdown: msg.confirmForceShutdowns(),
+        confirmVmDeleting: msg.confirmDeletingVm(),
+        confirmVmSuspending: msg.confirmSuspendingVm(),
+        autoConnect: msg.automaticConsoleConnection(),
+        ctrlAltDel: msg.ctrlAltDel(),
+        smartcard: msg.smartcard(),
+        fullScreenMode: msg.fullScreenMode(),
+        showNotifications: msg.disableAllNotifications(),
+      },
+      baseSelectedVms: props.selectedVms,
       showSaveConfirmation: false,
     }
+
     this.handleSave = this.handleSave.bind(this)
-    this.handleChange = this.handleChange.bind(this)
     this.handleCancel = this.handleCancel.bind(this)
     this.buildSections = this.buildSections.bind(this)
-    this.handleVmCheck = this.handleVmCheck.bind(this)
-    this.handleAllVmsCheck = this.handleAllVmsCheck.bind(this)
     this.handleSaveConfirmation = this.handleSaveConfirmation.bind(this)
+    this.resetBaseValues = this.resetBaseValues.bind(this)
   }
 
   handleSave (values, correlationId) {
-    const { saveOptions } = this.props
-    const { selectedVms } = this.state
-    this.setState({ showSaveConfirmation: false }, () => saveOptions(values, selectedVms, correlationId))
+    const { selectedVms, saveOptions } = this.props
+    saveOptions(values, selectedVms, correlationId)
+    const sentValues = { ...values }
+    this.setState({ sentValues })
+  }
+
+  resetBaseValues () {
+    const { currentValues } = this.props
+    const baseValues = { ...currentValues }
+    const sentValues = {}
+    this.setState({ sentValues, baseValues })
   }
 
   handleCancel () {
     this.props.goToVmPage()
   }
 
-  componentDidUpdate (prevProp, prevState) {
-    if (prevState.selectedVms !== this.state.selectedVms) {
-      this.props.updateUrl(this.state.selectedVms)
-    }
-  }
-
-  handleVmCheck (vmId) {
-    return () => {
-      this.setState(state => {
-        let selectedVms = new Set(state.selectedVms)
-        if (selectedVms.has(vmId)) {
-          selectedVms.delete(vmId)
-        } else {
-          selectedVms.add(vmId)
-        }
-        return {
-          selectedVms: [...selectedVms],
-        }
-      })
-    }
-  }
-
-  handleAllVmsCheck (e) {
-    if (e.target.checked) {
+  handleSaveConfirmation (values, correlationId, changedInPrevTransaction) {
+    if (this.props.isMultiSelect) {
       this.setState({
-        selectedVms: this.props.vms.get('vms').keySeq().toJS(),
+        showSaveConfirmation: {
+          values,
+          correlationId,
+          changedInPrevTransaction,
+        },
       })
     } else {
-      this.setState({
-        selectedVms: [],
-      })
+      this.handleSave(values, correlationId, changedInPrevTransaction)
     }
-  }
-
-  handleSaveConfirmation (values, correlationId) {
-    if (this.isMultiSelected) {
-      this.saveValues = values
-      this.correlationId = correlationId
-      this.setState({
-        showSaveConfirmation: true,
-      })
-    } else {
-      this.handleSave(values, correlationId)
-    }
-  }
-
-  handleChange (values) {
-    this.setState({ values })
   }
 
   buildSections (onChange) {
-    const { vms } = this.props
-    const { values, selectedVms } = this.state
+    const { canUseConsole, isMultiSelect } = this.props
+    const { draftValues, names } = this.state
     const idPrefix = 'vm-user-settings'
     return {
       vm: {
         title: msg.confirmationMessages(),
         fields: [
           {
-            title: msg.displayUnsavedChangesWarnings(),
-            body: <Checkbox
+            title: names.displayUnsavedWarnings,
+            body: <OptionalCheckbox
               id={`${idPrefix}-display-unsaved-warnings`}
-              checked={values.displayUnsavedWarnings}
+              value={draftValues.displayUnsavedWarnings}
               onChange={onChange('displayUnsavedWarnings')}
-            >
-              {msg.displayUnsavedChangesWarningsDetail()}
-            </Checkbox>,
+              label={msg.displayUnsavedChangesWarningsDetail()}
+              isMultiSelect={isMultiSelect}
+            />,
           },
           {
-            title: msg.confirmForceShutdowns(),
-            body: <Checkbox
+            title: names.confirmForceShutdown,
+            body: <OptionalCheckbox
               id={`${idPrefix}-confirm-force-shutdown`}
-              checked={values.confirmForceShutdown}
+              value={draftValues.confirmForceShutdown}
               onChange={onChange('confirmForceShutdown')}
-            >
-              {msg.confirmForceShutdownsDetails()}
-            </Checkbox>,
+              label={msg.confirmForceShutdownsDetails()}
+              isMultiSelect={isMultiSelect}
+            />,
           },
           {
-            title: msg.confirmDeletingVm(),
-            body: <Checkbox
+            title: names.confirmVmDeleting,
+            body: <OptionalCheckbox
               id={`${idPrefix}-confirm-deleting-vm`}
-              checked={values.confirmVmDeleting}
+              value={draftValues.confirmVmDeleting}
               onChange={onChange('confirmVmDeleting')}
-            >
-              {msg.confirmDeletingVmDetails()}
-            </Checkbox>,
+              label={msg.confirmDeletingVmDetails()}
+              isMultiSelect={isMultiSelect}
+            />,
           },
           {
-            title: msg.confirmSuspendingVm(),
-            body: <Checkbox
+            title: names.confirmVmSuspending,
+            body: <OptionalCheckbox
               id={`${idPrefix}-confirm-suspending-vm`}
-              checked={values.confirmVmSuspending}
+              value={draftValues.confirmVmSuspending}
               onChange={onChange('confirmVmSuspending')}
-            >
-              {msg.confirmSuspendingVmDetails()}
-            </Checkbox>,
+              label={msg.confirmSuspendingVmDetails()}
+              isMultiSelect={isMultiSelect}
+            />,
           },
         ],
       },
-      console: (this.isMultiSelected || vms.get('vms').filter(vm => selectedVms.includes(vm.get('id')) && vm.get('canUserUseConsole')).size > 0) && {
+      console: canUseConsole && {
         title: msg.console(),
         fields: [
           {
-            title: msg.fullScreenMode(),
-            body: <Switch
+            title: names.fullScreenMode,
+            body: <OptionalSwitch
               id={`${idPrefix}-full-screen`}
               bsSize='normal'
               title='normal'
-              value={values.fullScreenMode}
-              onChange={(e, state) => onChange('fullScreenMode')(state)}
+              value={draftValues.fullScreenMode}
+              onChange={onChange('fullScreenMode')}
+              isMultiSelect={isMultiSelect}
             />,
           },
           {
-            title: msg.ctrlAltDel(),
+            title: names.ctrlAltDel,
             tooltip: msg.ctrlAltDelTooltip(),
-            body: <Switch
+            body: <OptionalSwitch
               id={`${idPrefix}-ctrl-alt-del`}
               bsSize='normal'
               title='normal'
-              value={values.ctrlAltDel}
-              onChange={(e, state) => onChange('ctrlAltDel')(state)}
+              value={draftValues.ctrlAltDel}
+              onChange={onChange('ctrlAltDel')}
+              isMultiSelect={isMultiSelect}
             />,
           },
           {
-            title: msg.automaticConsoleConnection(),
-            body: <Checkbox
+            title: names.autoConnect,
+            body: <OptionalCheckbox
               id={`${idPrefix}-autoconnect`}
-              checked={values.autoConnect}
+              value={draftValues.autoConnect}
               onChange={onChange('autoConnect')}
-            >
-              {msg.automaticConsoleConnectionDetails()}
-            </Checkbox>,
+              label={msg.automaticConsoleConnectionDetails()}
+              isMultiSelect={isMultiSelect}
+            />,
           },
           {
-            title: msg.smartcard(),
+            title: names.smartcard,
             tooltip: msg.smartcardTooltip(),
-            body: <Checkbox
+            body: <OptionalCheckbox
               id={`${idPrefix}-smartcard`}
-              checked={values.smartcard}
+              value={draftValues.smartcard}
               onChange={onChange('smartcard')}
-            >
-              {msg.smartcardDetails()}
-            </Checkbox>,
+              label={msg.smartcardDetails()}
+              isMultiSelect={isMultiSelect}
+            />,
           },
         ],
       },
@@ -220,13 +184,14 @@ class VmSettings extends Component {
         tooltip: msg.notificationSettingsAffectAllMetricsNotifications(),
         fields: [
           {
-            title: msg.disableAllNotifications(),
-            body: <Switch
+            title: names.showNotifications,
+            body: <OptionalSwitch
               id={`${idPrefix}-disable-notifications`}
               bsSize='normal'
               title='normal'
-              value={values.disturb}
-              onChange={(e, state) => onChange('disturb')(state)}
+              value={draftValues.showNotifications === undefined ? undefined : !draftValues.showNotifications}
+              onChange={(dontDisturb) => onChange('showNotifications')(dontDisturb === undefined ? undefined : !dontDisturb)}
+              isMultiSelect={isMultiSelect}
             />,
           },
         ],
@@ -235,103 +200,110 @@ class VmSettings extends Component {
   }
 
   render () {
-    const { vms, loadAnotherPage } = this.props
-    const { selectedVms } = this.state
-    const loadMore = () => {
-      if (vms.get('notAllPagesLoaded')) {
-        loadAnotherPage(vms.get('page') + 1)
+    const { selectedVmsWithDetails, lastCorrelationId, currentValues, isMultiSelect } = this.props
+    const { showSaveConfirmation, draftValues, baseValues, sentValues, names } = this.state
+
+    const dismissConfirmation = () => this.setState({ showSaveConfirmation: false })
+    const saveAndDismissConfirmation = () => {
+      const { showSaveConfirmation: { values, correlationId, changedInPrevTransaction } } = this.state
+      this.handleSave(values, correlationId, changedInPrevTransaction)
+      dismissConfirmation()
+    }
+
+    const onChange = (field, params) => {
+      return (value) => {
+        const values = { ...draftValues }
+        values[field] = value
+        this.setState({ draftValues: values })
       }
     }
+
     return (
       <div className='container'>
         <div className={style['vms-settings-box']}>
           <Settings
-            buildSections={this.buildSections}
-            values={this.state.values}
-            mapper={valuesMapper}
+            draftValues={draftValues}
+            baseValues={baseValues}
+            currentValues={currentValues}
+            sentValues={sentValues}
+            names={names}
+            lastCorrelationId={lastCorrelationId}
+            resetBaseValues={this.resetBaseValues}
             onSave={this.handleSaveConfirmation}
             onCancel={this.handleCancel}
-            onChange={this.handleChange}
-          />
-          { this.isMultiSelected &&
-            <Card className={style['vms-card']}>
-              <CardHeading>
-                <CardTitle>
-                  {msg.selectedVirtualMachines()}
-                </CardTitle>
-              </CardHeading>
-              <div>
-                <Checkbox
-                  onChange={this.handleAllVmsCheck}
-                  checked={vms.get('vms').size === selectedVms.length}
-                >
-                  {msg.selectAllVirtualMachines()}
-                </Checkbox>
-              </div>
-              <div style={{ overflow: 'auto', height: 'calc(100% - 120px)' }}>
-                <InfiniteScroll
-                  loadMore={loadMore}
-                  hasMore={vms.get('notAllPagesLoaded')}
-                  useWindow={false}
-                  style={{ maxHeight: 0 }}
-                >
-                  {vms.get('vms')
-                    .toList()
-                    .sort((vmA, vmB) => naturalCompare.caseInsensitive(vmA.get('name'), vmB.get('name')))
-                    .sort((vmA, vmB) => selectedVms.includes(vmA.get('id')) && !selectedVms.includes(vmB.get('id')) ? -1 : 0)
-                    .map(vm => <div key={vm.get('id')}>
-                      <Checkbox
-                        onChange={this.handleVmCheck(vm.get('id'))}
-                        checked={selectedVms.includes(vm.get('id'))}
-                      >
-                        {vm.get('name')}
-                      </Checkbox>
-                    </div>)}
-                </InfiniteScroll>
-              </div>
-            </Card>
-          }
-          { this.isMultiSelected &&
-            <SaveConfirmationModal
-              vms={vms.get('vms').filter(vm => selectedVms.includes(vm.get('id'))).toList()}
-              show={this.state.showSaveConfirmation}
-              onConfirm={() => this.handleSave(this.saveValues, this.correlationId)}
-              onClose={() => this.setState({ showSaveConfirmation: false })}
-            />
-          }
+          >
+            <SettingsBase sections={this.buildSections(onChange)} />
+          </Settings>
+          {this.props.children}
         </div>
+        {isMultiSelect && <SaveConfirmationModal
+          vms={selectedVmsWithDetails}
+          show={!!showSaveConfirmation}
+          onConfirm={saveAndDismissConfirmation}
+          onClose={dismissConfirmation}
+        />}
       </div>
     )
   }
 }
 VmSettings.propTypes = {
-  vms: PropTypes.object.isRequired,
-  selectedVms: PropTypes.array.isRequired,
-  options: PropTypes.object.isRequired,
+  children: PropTypes.node,
+  currentValues: PropTypes.object.isRequired,
+  lastCorrelationId: PropTypes.string,
   isMultiSelect: PropTypes.bool,
+  canUseConsole: PropTypes.bool,
+  selectedVmsWithDetails: PropTypes.array.isRequired,
+  selectedVms: PropTypes.array.isRequired,
   saveOptions: PropTypes.func.isRequired,
   goToVmPage: PropTypes.func.isRequired,
-  loadAnotherPage: PropTypes.func.isRequired,
-  updateUrl: PropTypes.func.isRequired,
 }
 
 export default connect(
-  (state) => ({
-    config: state.config,
-    options: state.options,
-    vms: state.vms,
-  }),
+  (state, ownProps) => {
+    const { selectedVms, vms } = ownProps
+    const isMultiSelect = selectedVms.length > 1
+    const defaultValues = isMultiSelect ? {} : state.options.get('globalVm').toJS()
+    const vmsOptions = state.options.getIn(['vms'], EMPTY_MAP)
 
-  (dispatch, { selectedVms, isMultiSelect }) => ({
-    saveOptions: (values, vmIds, correlationId) => dispatch(saveVmsOptions({ values, vmIds }, { correlationId })),
-    goToVmPage: () => {
-      if (!isMultiSelect) {
-        dispatch(push(`/vm/${selectedVms[0]}`))
-      } else {
-        dispatch(push('/'))
+    const intersect = (field) => {
+      const defaultValue = defaultValues[field]
+      const values = selectedVms.map(id => vmsOptions.getIn([id, field])).filter(value => value !== undefined)
+      if (values.length !== selectedVms.length) {
+        console.warn(`Property ${field} is undefined for some vms: ${selectedVms.join(' | ')}`)
+        return defaultValue
       }
-    },
-    loadAnotherPage: (page) => dispatch(getByPage({ page })),
-    updateUrl: (selectedVms) => dispatch(replace(`/vms-settings/${selectedVms.join('/')}`)),
+      const unique = new Set(values)
+      if (unique.size === 1) {
+        return unique.values().next().value
+      }
+
+      console.warn(`No common property ${field} found for ${selectedVms.join(' | ')}`)
+      return defaultValue
+    }
+
+    const set = new Set(selectedVms)
+    const onlySelected = vms.filter(vm => set.has(vm.get('id'))).toList().toJS()
+
+    return {
+      currentValues: {
+        displayUnsavedWarnings: intersect('displayUnsavedWarnings'),
+        confirmForceShutdown: intersect('confirmForceShutdown'),
+        confirmVmDeleting: intersect('confirmVmDeleting'),
+        confirmVmSuspending: intersect('confirmVmSuspending'),
+        autoConnect: intersect('autoConnect'),
+        ctrlAltDel: intersect('ctrlAltDel'),
+        smartcard: intersect('smartcard'),
+        fullScreenMode: intersect('fullScreenMode'),
+        showNotifications: intersect('showNotifications'),
+      },
+      lastCorrelationId: state.options.getIn(['results', 'vms', 'correlationId'], ''),
+      selectedVmsWithDetails: onlySelected,
+      isMultiSelect,
+      canUseConsole: isMultiSelect || onlySelected.filter(({ canUserUseConsole }) => canUserUseConsole).size > 0,
+    }
+  },
+
+  (dispatch, { selectedVms }) => ({
+    saveOptions: (values, vmIds, correlationId) => dispatch(saveVmsOptions({ values, vmIds }, { correlationId })),
   })
 )(VmSettings)

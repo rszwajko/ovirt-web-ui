@@ -5,7 +5,7 @@ export function* adjustVVFile ({ data, usbAutoshare, usbFilter, vmId }) {
   const options = yield select(state => state.options)
   // __options__ can either be a plain JS object or ImmutableJS Map
   console.log('adjustVVFile options:', options)
-  const globalOptions = options.get('global')
+  const globalOptions = options.get('globalVm')
   const vmOptions = options.getIn(['vms', vmId])
   const usedOptions = vmOptions || globalOptions
   if (usedOptions.get('fullScreenMode')) {

@@ -14,6 +14,7 @@ import {
   VmsListPage,
   GlobalSettingsPage,
   VmSettingsPage,
+  MultiVmSettingsPage,
   VmConsolePage,
 } from './components/Pages'
 
@@ -25,6 +26,7 @@ import {
   NO_REFRESH_TYPE,
   SETTINGS_PAGE_TYPE,
   VM_SETTINGS_PAGE_TYPE,
+  MULTI_VM_SETTINGS_PAGE_TYPE,
 } from '_/constants'
 
 /**
@@ -51,18 +53,14 @@ export default function getRoutes (vms) {
         type: LIST_PAGE_TYPE,
         isToolbarFullWidth: true,
       },
-
       {
-        path: '/vms-settings/:id+',
-        title: msg.vmSettings(),
-        component: VmSettingsPage,
+        path: '/settings/vms/:id+',
+        title: msg.settings(),
+        component: MultiVmSettingsPage,
         toolbars: SettingsToolbar,
         closeable: true,
         isToolbarFullWidth: true,
-        type: VM_SETTINGS_PAGE_TYPE,
-        pageProps: {
-          isMultiSelect: true,
-        },
+        type: MULTI_VM_SETTINGS_PAGE_TYPE,
       },
       {
         path: '/vm/:id',

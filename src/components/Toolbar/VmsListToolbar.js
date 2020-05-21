@@ -14,7 +14,7 @@ import VmFilter from './VmFilters'
 import VmSort from './VmSort'
 import style from './style.css'
 
-const VmsListToolbar = ({ match, vms, onRemoveFilter, onClearFilters }) => {
+const VmsListToolbar = ({ match, vms, preview = false, onRemoveFilter, onClearFilters }) => {
   const filters = vms.get('filters').toJS()
 
   const removeFilter = (filter) => {
@@ -66,9 +66,9 @@ const VmsListToolbar = ({ match, vms, onRemoveFilter, onClearFilters }) => {
     <Toolbar className={style['full-width']}>
       <VmFilter />
       <VmSort />
-      <div id='select-all-vms-btn-box' />
+      {preview && <div id='select-all-vms-btn-box' />}
       <Toolbar.RightContent>
-        <div id='vm-settings-btn-box' />
+        {preview && <div id='vm-settings-btn-box' />}
         <AddVmButton key='addbutton' id='route-add-vm' />
       </Toolbar.RightContent>
       <Toolbar.Results>
@@ -102,15 +102,16 @@ const VmsListToolbar = ({ match, vms, onRemoveFilter, onClearFilters }) => {
 
 VmsListToolbar.propTypes = {
   vms: PropTypes.object.isRequired,
-
+  preview: PropTypes.bool,
   match: RouterPropTypeShapes.match.isRequired,
   onRemoveFilter: PropTypes.func.isRequired,
   onClearFilters: PropTypes.func.isRequired,
 }
 
 export default connect(
-  (state) => ({
-    vms: state.vms,
+  ({ vms, options }) => ({
+    vms,
+    preview: options.getIn(['global', 'preview'], false),
   }),
   (dispatch) => ({
     onRemoveFilter: (filters) => dispatch(saveVmsFilters({ filters })),

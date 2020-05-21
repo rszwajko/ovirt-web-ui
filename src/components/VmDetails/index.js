@@ -50,7 +50,7 @@ class VmDetailsContainer extends React.Component {
 
   render () {
     const { vm, options } = this.props
-    const usedOptions = options.getIn(['vms', vm.get('id')]) || options.get('global')
+    const usedOptions = options.getIn(['vms', vm.get('id')]) || options.get('globalVm')
     return (
       <Grid className={styles['details-container']}>
         {

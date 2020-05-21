@@ -58,6 +58,10 @@ const OvirtApi = {
 
   userToInternal: Transforms.User.toInternal,
 
+  userOptionsToInternal: Transforms.UserOptions.toInternal,
+
+  userOptionsToApi: Transforms.UserOptions.toApi,
+
   //
   //
   // ---- API interaction functions
@@ -486,20 +490,44 @@ const OvirtApi = {
     assertLogin({ methodName: 'saveSSHKey' })
     const input = JSON.stringify({ content: key })
     if (sshId !== undefined && sshId !== null) {
+      /**
+       * This will work if an entry in user_profile table exists.
+       * Note that (as of today):
+       * 1. ANY valid GUID will work i.e. '00000000-0000-0000-0000-000000000000'
+       * 2. each update re-generates ssh key id
+       * 3. there can be only one key (as it's stored in user_profile entry)
+       */
       return httpPut({
         url: `${AppConfiguration.applicationContext}/api/users/${userId}/sshpublickeys/${sshId}`,
         input,
       })
     } else {
+      /**
+       * This will work if:
+       * 1. there is no entry in user_profile table OR
+       * 2. previously used key was wiped out (set to empty string)
+       * Otherwise it will fail with 400 and message
+       * [Cannot add User Profile. User profile already created.]
+       */
       return httpPost({
         url: `${AppConfiguration.applicationContext}/api/users/${userId}/sshpublickeys`,
         input,
       })
     }
   },
+
   getSSHKey ({ userId }: { userId: string }): Promise<Object> {
     assertLogin({ methodName: 'getSSHKey' })
     return httpGet({ url: `${AppConfiguration.applicationContext}/api/users/${userId}/sshpublickeys` })
+  },
+
+  saveUserOptionsOnBackend ({ options, userId }: Object): Promise<Object> {
+    assertLogin({ methodName: 'saveUserOptionsOnBackend' })
+    const input = JSON.stringify(options)
+    return httpPut({
+      url: `${AppConfiguration.applicationContext}/api/users/${userId}`,
+      input,
+    })
   },
 
   /**

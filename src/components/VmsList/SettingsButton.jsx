@@ -12,7 +12,7 @@ export const VmsSettingsButton = ({ checkedVms = [] }) => {
   const container = document.getElementById('vm-settings-btn-box')
   if (container) {
     const link = checkedVms.length > 0
-      ? <Link to={`/vms-settings/${checkedVms.join('/')}`} className={`btn btn-default ${sharedStyle['settings-icon']}`} disabled={checkedVms.length === 0}>
+      ? <Link to={`/settings/vms/${checkedVms.join('/')}`} className={`btn btn-default ${sharedStyle['settings-icon']}`} disabled={checkedVms.length === 0}>
         <Icon
           name='cog'
           type='fa'

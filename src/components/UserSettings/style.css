@@ -22,3 +22,12 @@
 .half-width {
     width: 50%;
 }
+
+.quarter-width {
+    width: 25%;
+}
+
+.vms-list { 
+    overflow: 'auto';
+    max-height: 'calc(100% - 120px)';
+ }
