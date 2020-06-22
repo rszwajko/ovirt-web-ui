@@ -11,6 +11,8 @@ import {
   SET_OPTION_TO_VMS,
   SET_OPTIONS_SAVE_RESULTS,
   LOAD_USER_OPTIONS,
+  LOAD_USER_OPTIONS_IN_PROGRESS,
+  LOAD_USER_OPTIONS_FINISHED,
   SAVE_OPTIONS_ON_BACKEND,
 } from '_/constants'
 
@@ -74,6 +76,18 @@ export function loadUserOptions (userOptions: UserOptionsType): LoadUserOptionsA
     payload: {
       userOptions,
     },
+  }
+}
+
+export function loadingUserOptionsInProgress (): Object {
+  return {
+    type: LOAD_USER_OPTIONS_IN_PROGRESS,
+  }
+}
+
+export function loadingUserOptionsFinished (): Object {
+  return {
+    type: LOAD_USER_OPTIONS_FINISHED,
   }
 }
 

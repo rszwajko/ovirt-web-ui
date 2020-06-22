@@ -47,6 +47,7 @@ import {
   setVmsFilters,
   loadUserOptions,
   getSSHKey,
+  loadingUserOptionsFinished,
 } from '_/actions'
 
 import {
@@ -283,6 +284,7 @@ export function* fetchCurrentUser () {
   if (user) {
     yield processUser(user)
     yield put(getSSHKey({ userId }))
+    yield put(loadingUserOptionsFinished())
   }
 }
 

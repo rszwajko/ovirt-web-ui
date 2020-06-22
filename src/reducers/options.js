@@ -8,6 +8,8 @@ import {
   SET_OPTION_TO_VMS,
   SET_OPTIONS_SAVE_RESULTS,
   LOAD_USER_OPTIONS,
+  LOAD_USER_OPTIONS_IN_PROGRESS,
+  LOAD_USER_OPTIONS_FINISHED,
 } from '_/constants'
 import { actionReducer } from './utils'
 import { locale } from '_/intl'
@@ -45,6 +47,12 @@ const defaultOptions: UserOptionsType = {
 const initialState = fromJS({ ...defaultOptions, results: {} })
 
 const options = actionReducer(initialState, {
+  [LOAD_USER_OPTIONS_IN_PROGRESS]: (clientState: any, action: any) => {
+    return clientState.setIn(['loadingFinished'], false)
+  },
+  [LOAD_USER_OPTIONS_FINISHED]: (clientState: any, action: any) => {
+    return clientState.setIn(['loadingFinished'], true)
+  },
   [LOAD_USER_OPTIONS]: (clientState: any, action: LoadUserOptionsActionType) => {
     const {
       payload: {

@@ -1,9 +1,9 @@
 // @flow
 
 import Api from '_/ovirtapi'
-import { all, put, select, takeLatest, takeEvery } from 'redux-saga/effects'
+import { all, put, select, takeLatest, takeEvery, call } from 'redux-saga/effects'
 
-import { saveSSHKey as saveSSHKeyAction, saveUserOptionsOnBackend, setOption, setSSHKey } from '_/actions'
+import { saveSSHKey as saveSSHKeyAction, saveUserOptionsOnBackend, setOption, setSSHKey, loadingUserOptionsInProgress, loadingUserOptionsFinished } from '_/actions'
 import { callExternalAction } from './utils'
 import { processUser } from './index'
 
@@ -110,7 +110,18 @@ function* saveRemoteOptions (newOptions: Object, paths: Array<Array<string>>, de
   return { ...result, changes: updatedPropNames }
 }
 
-export function* saveGlobalOptions ({ payload: { sshKey, showNotifications, dontDisturbFor, language, updateRate }, meta: { correlationId } }: SaveGlobalOptionsActionType): any {
+function withLoadingUserOptions (delegateGenerator: (any) => Generator<any, any, any>): any {
+  return function* (action: any): any {
+    yield put(loadingUserOptionsInProgress())
+    try {
+      yield call(delegateGenerator, action)
+    } finally {
+      yield put(loadingUserOptionsFinished())
+    }
+  }
+}
+
+export function* saveGlobalOptions ({ payload: { sshKey, showNotifications, dontDisturbFor, language, updateRate }, meta: { correlationId } }: SaveGlobalOptionsActionType): Generator<any, any, any> {
   const [
     { error: sshError, changes: sshChanges = [], sameAsCurrent: keySameAsCurrent, ...sshData },
     { error: remoteOptionsError, changes: remoteOptionChanges = [], sameAsCurrent: remoteOptionsSameAsCurrent, ...userData },
@@ -130,7 +141,7 @@ export function* saveGlobalOptions ({ payload: { sshKey, showNotifications, dont
   yield put(setOption({ key: ['results', 'global'], value: { correlationId } }))
 }
 
-export function* saveVmsOptions (action: SaveVmsOptionsActionType): any {
+export function* saveVmsOptions (action: SaveVmsOptionsActionType): Generator<any, any, any> {
   const {
     payload: {
       values: {
@@ -183,7 +194,7 @@ export function* saveVmsOptions (action: SaveVmsOptionsActionType): any {
 export default [
   takeEvery(SAVE_OPTION, saveOption),
   takeEvery(SAVE_SSH_KEY, saveSSHKey),
-  takeLatest(SAVE_GLOBAL_OPTIONS, saveGlobalOptions),
-  takeLatest(SAVE_VMS_OPTIONS, saveVmsOptions),
+  takeLatest(SAVE_GLOBAL_OPTIONS, withLoadingUserOptions(saveGlobalOptions)),
+  takeLatest(SAVE_VMS_OPTIONS, withLoadingUserOptions(saveVmsOptions)),
   takeLatest(GET_SSH_KEY, fetchSSHKey),
 ]

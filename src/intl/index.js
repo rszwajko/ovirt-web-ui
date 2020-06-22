@@ -26,10 +26,12 @@ const DEFAULT_LOCALE = 'en'
 
 const options = JSON.parse(loadFromLocalStorage('options')) || {}
 
+export const localeFromUrl = getLocaleFromUrl()
+
 /**
  * Currently selected locale
  */
-export const locale: string = getLocaleFromUrl() || options.language || getBrowserLocale() || DEFAULT_LOCALE
+export const locale: string = localeFromUrl || options.language || getBrowserLocale() || DEFAULT_LOCALE
 
 function getBrowserLocale (): ?string {
   if (window.navigator.language) {
