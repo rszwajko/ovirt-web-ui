@@ -11,6 +11,10 @@ class CounterAlert extends React.Component {
     this.timer = setTimeout(this.props.onDismiss, TIME_TO_DISPLAY_MODAL)
   }
 
+  componentWillUnmount () {
+    clearTimeout(this.timer)
+  }
+
   render () {
     const dismiss = () => {
       clearTimeout(this.timer)

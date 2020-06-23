@@ -91,14 +91,14 @@ export function loadingUserOptionsFinished (): Object {
   }
 }
 
-export function saveGlobalOptions ({ values: { sshKey, language, showNotifications, dontDisturbFor, updateRate } = {} }: Object, { correlationId }: Object): SaveGlobalOptionsActionType {
+export function saveGlobalOptions ({ values: { sshKey, language, showNotifications, notificationSnoozeDuration, updateRate } = {} }: Object, { correlationId }: Object): SaveGlobalOptionsActionType {
   return {
     type: SAVE_GLOBAL_OPTIONS,
     payload: {
       sshKey,
       language,
       showNotifications,
-      dontDisturbFor,
+      notificationSnoozeDuration,
       updateRate,
     },
     meta: {

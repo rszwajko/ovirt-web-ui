@@ -1,3 +1,4 @@
+import { resumeNotifications } from './options'
 import {
   all,
   call,
@@ -25,7 +26,6 @@ import {
   fetchVms,
   fetchCurrentUser,
   selectVmDetail,
-  refreshMainPage,
 } from './index'
 import { fetchIsoFiles } from './storageDomains'
 
@@ -41,7 +41,8 @@ function* changePage (action) {
     onNavigation: true,
     shallowFetch: true,
   }))
-  yield put(Actions.startSchedulerFixedDelay())
+  const delayInSeconds = yield select(state => state.options.getIn(['global', 'updateRate'], AppConfiguration.schedulerFixedDelayInSeconds))
+  yield put(Actions.startSchedulerFixedDelay({ immediate: true, delayInSeconds }))
 }
 
 /**
@@ -58,6 +59,7 @@ function* refreshData (action) {
   if (refreshType) {
     yield pagesRefreshers[refreshType](Object.assign({ id: currentPage.id }, action.payload))
   }
+  yield put(Actions.refreshFinished())
   console.info('refreshData() 🡒 finished')
 }
 
@@ -156,7 +158,7 @@ function* refreshVmSettingsPage ({ id }) {
 
 function* refreshMultiVmSettingsPage ({ id }) {
   yield all([
-    refreshMainPage({}),
+    refreshListPage({}),
     fetchCurrentUser(),
   ])
 }
@@ -187,49 +189,69 @@ function* refreshConsolePage ({ id, onNavigation, onSchedule }) {
   }
 }
 
-function* startSchedulerWithFixedDelay (action) {
+function* startSchedulerWithFixedDelay ({ payload: { immediate, delayInSeconds } }) {
   // if a scheduler is already running, stop it
   yield put(Actions.stopSchedulerFixedDelay())
 
+  // Continue previous wait period (unless immediate refresh is forced).
+  // Restarting the wait period could lead to irregular, long intervals without refresh
+  // or prevent the refresh (as long as user will keep changing the interval)
+  // Example:
+  // 1. previous refresh period is 2 min (1m 30sec already elapsed)
+  // 2. user changes it to 5min
+  // 3. already elapsed time will be taken into consideration and refresh will be
+  //    triggered after 3 m 30sec.
+  // Result: Wait intervals will be 2min -> 2min -> 5min -> 5min.
+  // With restarting timers: 2min -> 2min -> 6min 30 sec -> 5min.
+  const lastRefresh = yield select(state => state.config.get('lastRefresh', 0))
+  const timeFromLastRefresh = (Date.now() - lastRefresh) / 1000
+  const startDelayInSeconds = immediate || timeFromLastRefresh > delayInSeconds ? 0 : delayInSeconds - timeFromLastRefresh
+
   // run a new scheduler
-  yield schedulerWithFixedDelay(action.payload.delayInSeconds)
+  yield schedulerWithFixedDelay(delayInSeconds, startDelayInSeconds)
+}
+
+/**
+ * Starts a cancellable timer.
+ * Timer can be cancelled by dispatching configurable action.
+ */
+function* schedulerWaitFor (timeInSeconds, cancelActionType = C.STOP_SCHEDULER_FIXED_DELAY) {
+  if (!timeInSeconds) {
+    return {}
+  }
+  const { stopped } = yield race({
+    stopped: take(cancelActionType),
+    fixedDelay: delay(timeInSeconds * 1000),
+  })
+  return { stopped: !!stopped }
 }
 
 let _SchedulerCount = 0
 
-function* schedulerWithFixedDelay (delayInSeconds = AppConfiguration.schedulerFixedDelayInSeconds) {
-  if (!isNumber(delayInSeconds) || delayInSeconds <= 0) {
+function* schedulerWithFixedDelay (
+  delayInSeconds = AppConfiguration.schedulerFixedDelayInSeconds,
+  startDelayInSeconds = AppConfiguration.schedulerFixedDelayInSeconds
+) {
+  if (!isNumber(delayInSeconds) || delayInSeconds <= 0 ||
+  !isNumber(startDelayInSeconds) || startDelayInSeconds < 0) {
     return
   }
 
   const myId = _SchedulerCount++
-  console.log(`⏰ schedulerWithFixedDelay[${myId}] 🡒 starting fixed delay scheduler`)
+  console.log(`⏰ schedulerWithFixedDelay[${myId}] 🡒 starting fixed delay scheduler with start delay ${startDelayInSeconds}`)
 
-  let enabled = true
+  const { stopped: stoppedBeforeStarted } = yield * schedulerWaitFor(startDelayInSeconds)
+  if (stoppedBeforeStarted) {
+    console.log(`⏰ schedulerWithFixedDelay[${myId}] 🡒 scheduler has been stopped during start delay`)
+  }
+
+  let enabled = !stoppedBeforeStarted
   while (enabled) {
-    console.log(`⏰ schedulerWithFixedDelay[${myId}] 🡒 stoppable delay for: ${delayInSeconds}`)
-    const { stopped } = yield race({
-      stopped: take(C.STOP_SCHEDULER_FIXED_DELAY), // TODO: stop the scheduler if an error page or logged out page is displayed
-      fixedDelay: call(delay, (delayInSeconds * 1000)),
-    })
-
-    if (stopped) {
-      enabled = false
-      console.log(`⏰ schedulerWithFixedDelay[${myId}] 🡒 scheduler has been stopped`)
-      continue
-    }
-
     const isTokenExpired = yield select(state => state.config.get('isTokenExpired'))
     if (isTokenExpired) {
       enabled = false
       console.log(`⏰ schedulerWithFixedDelay[${myId}] 🡒 scheduler has been stopped due to SSO token expiration`)
       continue
-    }
-
-    const showNotifications = yield select(state => state.options.getIn(['global', 'showNotifications']))
-    const notificationsResumeTime = yield select(state => state.options.getIn(['global', 'notificationsResumeTime']))
-    if (!showNotifications && Date.now() > notificationsResumeTime) {
-      yield put(Actions.saveOption({ key: ['global', 'showNotifications'], value: true }))
     }
 
     const oVirtVersion = yield select(state => state.config.get('oVirtApiVersion'))
@@ -238,11 +260,35 @@ function* schedulerWithFixedDelay (delayInSeconds = AppConfiguration.schedulerFi
       continue
     }
 
-    console.log(`⏰ schedulerWithFixedDelay[${myId}] 🡒 running after delay of: ${delayInSeconds}`)
     yield put(Actions.refresh({
       onSchedule: true,
       shallowFetch: true,
     }))
+
+    console.log(`⏰ schedulerWithFixedDelay[${myId}] 🡒 stoppable delay for: ${delayInSeconds}`)
+    const { stopped } = yield * schedulerWaitFor(delayInSeconds)
+
+    if (stopped) {
+      enabled = false
+      console.log(`⏰ schedulerWithFixedDelay[${myId}] 🡒 scheduler has been stopped`)
+      continue
+    }
+
+    console.log(`⏰ schedulerWithFixedDelay[${myId}] 🡒 running after delay of: ${delayInSeconds}`)
+  }
+}
+
+let _SchedulerForNotificationsCount = 0
+function* scheduleResumingNotifications ({ payload: { delayInSeconds } }) {
+  yield put(Actions.stopSchedulerForResumingNotifications())
+  const myId = _SchedulerForNotificationsCount++
+  console.log(`notification timer [${myId}] - delay [${delayInSeconds}] sec`)
+  const { stopped } = yield * schedulerWaitFor(delayInSeconds, C.STOP_SCHEDULER_FOR_RESUMING_NOTIFICATIONS)
+  if (stopped) {
+    console.log(`notification timer [${myId}] - stopped`)
+  } else {
+    console.log(`notification timer [${myId}] - resume notifications`)
+    yield * resumeNotifications()
   }
 }
 
@@ -262,4 +308,5 @@ export default [
   throttle(5000, C.REFRESH_DATA, refreshData),
   takeLatest(C.CHANGE_PAGE, changePage),
   takeEvery(C.LOGOUT, logoutAndCancelScheduler),
+  takeEvery(C.START_SCHEDULER_FOR_RESUMING_NOTIFICATIONS, scheduleResumingNotifications),
 ]

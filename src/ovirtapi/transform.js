@@ -953,13 +953,14 @@ const Event = {
   toApi: undefined,
 }
 
-function mapGlobal ({ updateRate, language, showNotifications, notificationsResumeTime, preview }: Object = {}): GlobalUserSettingsType {
+function mapGlobal ({ updateRate, language, preview }: Object = {}): GlobalUserSettingsType {
   return {
     updateRate,
     language,
-    showNotifications,
-    notificationsResumeTime,
     preview,
+    // local only options
+    showNotifications: undefined,
+    notificationSnoozeDuration: undefined,
   }
 }
 
@@ -1027,14 +1028,15 @@ const UserOptions = {
   },
   toApi: (client: UserOptionsType, server: Object = {}): Object => {
     const { global: serverGlobal = {}, globalVm: serverGlobalVm = {}, vms: serverVms = {}, ...serverRest } = server
-    const { global: clientGlobal = {}, globalVm: clientGlobalVm = {}, vms: clientVms = {} } = client
+    const { global: { updateRate, language } = {}, globalVm: clientGlobalVm = {}, vms: clientVms = {} } = client
 
     const merged = {
       global: {
         // assume no nested objects
-        // values from the client overwrite all known properties
+        // values from the client overwrite all known remote properties
         ...serverGlobal,
-        ...clientGlobal,
+        updateRate,
+        language,
       },
       globalVm: {
         // assume no nested objects

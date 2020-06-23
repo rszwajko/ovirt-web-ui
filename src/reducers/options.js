@@ -24,7 +24,7 @@ const defaultOptions: UserOptionsType = {
     updateRate: AppConfiguration.schedulerFixedDelayInSeconds,
     language: locale,
     showNotifications: true,
-    notificationsResumeTime: 0,
+    notificationSnoozeDuration: AppConfiguration.notificationSnoozeDurationInMinutes,
     preview: false,
   },
   ssh: undefined,

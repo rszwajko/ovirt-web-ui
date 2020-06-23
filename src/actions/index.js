@@ -1,4 +1,4 @@
-import AppConfiguration from '../config'
+import { AppConfiguration } from '_/config'
 import {
   APP_CONFIGURED,
   CHANGE_PAGE,
@@ -20,7 +20,10 @@ import {
   SET_WEBSOCKET,
   SHOW_TOKEN_EXPIRED_MSG,
   START_SCHEDULER_FIXED_DELAY,
+  START_SCHEDULER_FOR_RESUMING_NOTIFICATIONS,
   STOP_SCHEDULER_FIXED_DELAY,
+  STOP_SCHEDULER_FOR_RESUMING_NOTIFICATIONS,
+  REFRESH_FINISHED,
   UPDATE_PAGING_DATA,
 } from '_/constants'
 
@@ -47,15 +50,31 @@ export function appConfigured () {
   return { type: APP_CONFIGURED }
 }
 
-export function startSchedulerFixedDelay (delayInSeconds = AppConfiguration.schedulerFixedDelayInSeconds) {
+export function startSchedulerFixedDelay ({
+  immediate = false,
+  delayInSeconds = AppConfiguration.schedulerFixedDelayInSeconds,
+} = {}) {
   return {
     type: START_SCHEDULER_FIXED_DELAY,
-    payload: { delayInSeconds },
+    payload: { immediate, delayInSeconds },
   }
 }
 
 export function stopSchedulerFixedDelay () {
   return { type: STOP_SCHEDULER_FIXED_DELAY }
+}
+
+export function startSchedulerForResumingNotifications (delayInSeconds) {
+  return {
+    type: START_SCHEDULER_FOR_RESUMING_NOTIFICATIONS,
+    payload: {
+      delayInSeconds,
+    },
+  }
+}
+
+export function stopSchedulerForResumingNotifications () {
+  return { type: STOP_SCHEDULER_FOR_RESUMING_NOTIFICATIONS }
 }
 
 export function setUserFilterPermission (filter) {
@@ -224,6 +243,15 @@ export function setDefaultTimezone ({
     payload: {
       defaultGeneralTimezone,
       defaultWindowsTimezone,
+    },
+  }
+}
+
+export function refreshFinished () {
+  return {
+    type: REFRESH_FINISHED,
+    payload: {
+      time: Date.now(),
     },
   }
 }

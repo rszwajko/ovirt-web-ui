@@ -178,9 +178,9 @@ export type GlobalUserSettingsType = {|
   // merging logic assumes thee is no nested object
   updateRate: number,
   language: string,
-  showNotifications: boolean,
-  notificationsResumeTime: ?number,
-  preview: boolean
+  showNotifications?: boolean,
+  preview: boolean,
+  notificationSnoozeDuration?: number
 |}
 
 export type UserOptionsType = {|
@@ -211,7 +211,7 @@ export type SaveGlobalOptionsActionType = {
     updateRate?: number,
     language?: string,
     showNotifications?: boolean,
-    dontDisturbFor?: number,
+    notificationSnoozeDuration?: number,
     sshKey?: string
   |},
   meta: {|

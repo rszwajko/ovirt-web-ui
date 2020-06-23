@@ -46,6 +46,7 @@ class VmSettings extends Component {
     this.buildSections = this.buildSections.bind(this)
     this.handleSaveConfirmation = this.handleSaveConfirmation.bind(this)
     this.resetBaseValues = this.resetBaseValues.bind(this)
+    this.isLeavingPage = this.isLeavingPage.bind(this)
   }
 
   handleSave (values, correlationId) {
@@ -57,7 +58,19 @@ class VmSettings extends Component {
 
   resetBaseValues () {
     const { currentValues } = this.props
-    const baseValues = { ...currentValues }
+    const { draftValues } = this.state
+    // when draft has N/A fields then even if they
+    // will be resolved to actual values skip them
+    // from calculations
+    // use case:
+    // 1. selected VM's have no custom values.
+    // 2. all fields are reported as N/A
+    // 3. one field is changed and saved
+    // 4. custom settings are created for ALL fields
+    //      and  intersection is no longer empty
+    const filteredCurrent = Object.entries(currentValues)
+      .filter(([name, value]) => draftValues[name] !== undefined)
+    const baseValues = Object.fromEntries(filteredCurrent)
     const sentValues = {}
     this.setState({ sentValues, baseValues })
   }
@@ -199,6 +212,15 @@ class VmSettings extends Component {
     }
   }
 
+  isLeavingPage ({ nextLocation = {}, currentLocation = {}, changes }) {
+    const { pathname: nextPath = '' } = nextLocation
+    const { selectedVms } = this.props
+    // when multiple VM's are selected then de-selecting a vm is interpreted as leaving a page
+    // this is consequence of storing ID's of all selected VM's in the URL
+    // TODO: consider storing IDs of selected vm's outside of URL
+    return !!changes && !selectedVms.filter(id => nextPath.includes(id)).length
+  }
+
   render () {
     const { selectedVmsWithDetails, lastCorrelationId, currentValues, isMultiSelect } = this.props
     const { showSaveConfirmation, draftValues, baseValues, sentValues, names } = this.state
@@ -231,6 +253,7 @@ class VmSettings extends Component {
             resetBaseValues={this.resetBaseValues}
             onSave={this.handleSaveConfirmation}
             onCancel={this.handleCancel}
+            isLeavingPage={this.isLeavingPage}
           >
             <SettingsBase sections={this.buildSections(onChange)} />
           </Settings>
@@ -269,7 +292,7 @@ export default connect(
       const defaultValue = defaultValues[field]
       const values = selectedVms.map(id => vmsOptions.getIn([id, field])).filter(value => value !== undefined)
       if (values.length !== selectedVms.length) {
-        console.warn(`Property ${field} is undefined for some vms: ${selectedVms.join(' | ')}`)
+        console.log(`Property ${field} is undefined for some vms: ${selectedVms.join(' | ')}`)
         return defaultValue
       }
       const unique = new Set(values)
@@ -277,7 +300,7 @@ export default connect(
         return unique.values().next().value
       }
 
-      console.warn(`No common property ${field} found for ${selectedVms.join(' | ')}`)
+      console.log(`No common property ${field} found for ${selectedVms.join(' | ')}`)
       return defaultValue
     }
 

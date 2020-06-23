@@ -496,6 +496,7 @@ const OvirtApi = {
        * 1. ANY valid GUID will work i.e. '00000000-0000-0000-0000-000000000000'
        * 2. each update re-generates ssh key id
        * 3. there can be only one key (as it's stored in user_profile entry)
+       * Expected result: { user: <> , content: <>, id: <>, href: <> }
        */
       return httpPut({
         url: `${AppConfiguration.applicationContext}/api/users/${userId}/sshpublickeys/${sshId}`,
@@ -508,6 +509,7 @@ const OvirtApi = {
        * 2. previously used key was wiped out (set to empty string)
        * Otherwise it will fail with 400 and message
        * [Cannot add User Profile. User profile already created.]
+       * Expected result: { status: 'complete'}
        */
       return httpPost({
         url: `${AppConfiguration.applicationContext}/api/users/${userId}/sshpublickeys`,

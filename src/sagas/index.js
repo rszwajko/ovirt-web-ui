@@ -48,6 +48,7 @@ import {
   loadUserOptions,
   getSSHKey,
   loadingUserOptionsFinished,
+  startSchedulerFixedDelay,
 } from '_/actions'
 
 import {
@@ -291,8 +292,15 @@ export function* fetchCurrentUser () {
 export function* processUser (user) {
   const internalUser = Api.userToInternal({ user })
   const userOptions = Api.userOptionsToInternal(internalUser.receivedOptions)
+
+  const currentUpdateRate = yield select(state => state.options.getIn(['global', 'updateRate'], AppConfiguration.schedulerFixedDelayInSeconds))
+  const { global: { updateRate } } = userOptions
+
   yield put(setUser({ user: internalUser }))
   yield put(loadUserOptions(userOptions))
+  if (updateRate && currentUpdateRate !== updateRate) {
+    yield put(startSchedulerFixedDelay({ delayInSeconds: updateRate }))
+  }
 }
 
 export function* fetchSinglePool (action) {

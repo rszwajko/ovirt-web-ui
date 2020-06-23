@@ -54,7 +54,6 @@ class GlobalSettings extends Component {
   constructor (props) {
     super(props)
     this.state = {
-      defaultDontDisturbFor: dontDisturbList[0] && dontDisturbList[0].id,
       config: {
         ...props.config,
       },
@@ -69,7 +68,7 @@ class GlobalSettings extends Component {
         sshKey: msg.sshKey(),
         language: msg.language(),
         showNotifications: msg.dontDisturb(),
-        dontDisturbFor: msg.dontDisturbFor(),
+        notificationSnoozeDuration: msg.dontDisturbFor(),
         updateRate: msg.uiRefresh(),
       },
     }
@@ -97,7 +96,7 @@ class GlobalSettings extends Component {
   }
 
   buildSections (onChange) {
-    const { draftValues, names, config, defaultDontDisturbFor } = this.state
+    const { draftValues, names, config } = this.state
     const idPrefix = 'global-user-settings'
     return {
       general: {
@@ -165,18 +164,18 @@ class GlobalSettings extends Component {
               title='normal'
               value={!draftValues.showNotifications}
               onChange={(e, dontDisturb) => {
-                onChange('showNotifications', 'dontDisturbFor')(!dontDisturb, draftValues.dontDisturbFor || defaultDontDisturbFor)
+                onChange('showNotifications')(!dontDisturb)
               }}
             />,
           },
           {
-            title: names.dontDisturbFor,
+            title: names.notificationSnoozeDuration,
             body: <div className={style['half-width']}>
               <SelectBox
                 id={`${idPrefix}-dont-disturb-for`}
                 items={dontDisturbList}
-                selected={draftValues.dontDisturbFor || defaultDontDisturbFor}
-                onChange={onChange('dontDisturbFor')}
+                selected={draftValues.notificationSnoozeDuration}
+                onChange={onChange('notificationSnoozeDuration')}
                 disabled={draftValues.showNotifications}
               />
             </div>,
@@ -190,13 +189,10 @@ class GlobalSettings extends Component {
     const { lastCorrelationId, currentValues } = this.props
     const { draftValues, baseValues, sentValues, names } = this.state
 
-    const onChange = (field, dependendField) => {
-      return (value, dependendValue) => {
+    const onChange = (field) => {
+      return (value) => {
         const values = { ...draftValues }
         values[field] = value
-        if (dependendField) {
-          values[dependendField] = dependendValue
-        }
         this.setState({ draftValues: values })
       }
     }
@@ -239,7 +235,7 @@ export default connect(
       sshKey: options.getIn(['ssh', 'key']),
       language: options.getIn(['global', 'language']),
       showNotifications: options.getIn(['global', 'showNotifications']),
-      dontDisturbFor: options.getIn(['global', 'dontDisturbFor']),
+      notificationSnoozeDuration: options.getIn(['global', 'notificationSnoozeDuration']),
       updateRate: options.getIn(['global', 'updateRate']),
     },
     lastCorrelationId: options.getIn(['results', 'global', 'correlationId'], ''),

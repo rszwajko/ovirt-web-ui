@@ -18,6 +18,7 @@ import {
   SET_USER_SESSION_TIMEOUT_INTERVAL,
   SET_WEBSOCKET,
   SHOW_TOKEN_EXPIRED_MSG,
+  REFRESH_FINISHED,
 } from '_/constants'
 
 const initialState = Immutable.fromJS({
@@ -126,6 +127,9 @@ const config = actionReducer(initialState, {
       defaultGeneralTimezone,
       defaultWindowsTimezone,
     })
+  },
+  [REFRESH_FINISHED] (state, { payload: { time } }) {
+    return state.set('lastRefresh', time)
   },
   [APP_CONFIGURED] (state) {
     return state.set('appConfigured', true)

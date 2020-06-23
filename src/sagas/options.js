@@ -3,14 +3,13 @@
 import Api from '_/ovirtapi'
 import { all, put, select, takeLatest, takeEvery, call } from 'redux-saga/effects'
 
-import { saveSSHKey as saveSSHKeyAction, saveUserOptionsOnBackend, setOption, setSSHKey, loadingUserOptionsInProgress, loadingUserOptionsFinished } from '_/actions'
+import { saveSSHKey as saveSSHKeyAction, saveUserOptionsOnBackend, setOption, setSSHKey, loadingUserOptionsInProgress, loadingUserOptionsFinished, stopSchedulerForResumingNotifications, startSchedulerForResumingNotifications } from '_/actions'
 import { callExternalAction } from './utils'
 import { processUser } from './index'
 
 import {
   GET_SSH_KEY,
   SAVE_GLOBAL_OPTIONS,
-  SAVE_OPTION,
   SAVE_SSH_KEY,
   SAVE_VMS_OPTIONS,
 } from '_/constants'
@@ -19,7 +18,7 @@ import type { SaveGlobalOptionsActionType, SaveVmsOptionsActionType, VmSettingsT
 import { fromJS } from 'immutable'
 
 function* fetchSSHKey (action: Object): any {
-  const result = yield callExternalAction('getSSHKey', Api.getSSHKey, action)
+  const result = yield * callExternalAction('getSSHKey', Api.getSSHKey, action)
   if (result.error) {
     return
   }
@@ -41,16 +40,17 @@ export function* saveSSHKey ([ name, value ]: any): any {
     return { changes: [name], sameAsCurrent: true }
   }
   const userId = yield select((state) => state.config.getIn(['user', 'id']))
-  const result = yield callExternalAction(
+  const result = yield * callExternalAction(
     'saveSSHKey',
     Api.saveSSHKey,
     saveSSHKeyAction({ sshId, key: value, userId }),
     true)
-  return { ...result, changes: [name] }
-}
 
-function* saveOption ({ payload }: any): any {
-  yield put(setOption(payload))
+  // if no entry in user_profiles exist then the response is simply {status: complete}
+  // without the content (ssh key body). In order to avoid extra call we set
+  // the value that we have just sent to the server. If the call was successfull the value is correct,
+  // if the call failed we expect an error flag to be present anyway.
+  return { content: value, ...result, changes: [name] }
 }
 
 function mergeWithDefaults (currentOptions: Object, paths: Array<Array<string>>, defaultOptions?: Object): any {
@@ -102,7 +102,7 @@ function* saveRemoteOptions (newOptions: Object, paths: Array<Array<string>>, de
   const mergedWithReceived = Api.userOptionsToApi(mergedWithDefaultsAndNew.toJS(), receivedOptions.toJS())
   const userId = yield select((state) => state.config.getIn(['user', 'id']))
 
-  const result = yield callExternalAction(
+  const result = yield * callExternalAction(
     'saveUserOptionsOnBackend',
     Api.saveUserOptionsOnBackend,
     saveUserOptionsOnBackend({ options: mergedWithReceived, userId }),
@@ -121,24 +121,49 @@ function withLoadingUserOptions (delegateGenerator: (any) => Generator<any, any,
   }
 }
 
-export function* saveGlobalOptions ({ payload: { sshKey, showNotifications, dontDisturbFor, language, updateRate }, meta: { correlationId } }: SaveGlobalOptionsActionType): Generator<any, any, any> {
+export function* saveGlobalOptions ({ payload: { sshKey, showNotifications, notificationSnoozeDuration, language, updateRate }, meta: { correlationId } }: SaveGlobalOptionsActionType): Generator<any, any, any> {
   const [
     { error: sshError, changes: sshChanges = [], sameAsCurrent: keySameAsCurrent, ...sshData },
     { error: remoteOptionsError, changes: remoteOptionChanges = [], sameAsCurrent: remoteOptionsSameAsCurrent, ...userData },
   ] = yield all([
     saveSSHKey(...Object.entries({ sshKey })),
-    saveRemoteOptions({ language, updateRate, dontDisturbFor, showNotifications }, [['global']]),
+    saveRemoteOptions({ language, updateRate }, [['global']]),
   ])
 
   if (!remoteOptionsError && remoteOptionChanges.length && !remoteOptionsSameAsCurrent) {
-    yield processUser(userData)
+    yield * processUser(userData)
   }
 
   if (!sshError && sshChanges.length && !keySameAsCurrent) {
     yield put(setSSHKey(Api.SSHKeyToInternal({ sshKey: sshData })))
   }
 
+  if (showNotifications !== undefined || notificationSnoozeDuration !== undefined) {
+    yield * updateNotifications({
+      current: yield select((state) => state.options.getIn(['global', 'showNotifications'])),
+      next: showNotifications,
+    },
+    {
+      current: yield select((state) => state.options.getIn(['global', 'notificationSnoozeDuration'])),
+      next: notificationSnoozeDuration,
+    })
+  }
+
   yield put(setOption({ key: ['results', 'global'], value: { correlationId } }))
+}
+
+function* updateNotifications (show: {current: boolean, next?: boolean}, snooze: {current: number, next?: number}): any {
+  const snoozeDuration = snooze.next || snooze.current
+  const showNotifications = show.next === undefined ? show.current : show.next
+
+  yield put(setOption({ key: ['global', 'showNotifications'], value: showNotifications }))
+  yield put(setOption({ key: ['global', 'notificationSnoozeDuration'], value: snoozeDuration }))
+  if (showNotifications) {
+    yield put(stopSchedulerForResumingNotifications())
+  } else {
+    // minutes -> seconds
+    yield put(startSchedulerForResumingNotifications(snoozeDuration * 60))
+  }
 }
 
 export function* saveVmsOptions (action: SaveVmsOptionsActionType): Generator<any, any, any> {
@@ -177,13 +202,13 @@ export function* saveVmsOptions (action: SaveVmsOptionsActionType): Generator<an
   const paths = vmIds.map(id => ['vms', id])
   const globalVm = yield select((state) => state.options.getIn(['globalVm']).toJS())
 
-  const { error, changes = [], sameAsCurrent, ...userData } = yield saveRemoteOptions(typeSafeData, paths, globalVm)
+  const { error, changes = [], sameAsCurrent, ...userData } = yield * saveRemoteOptions(typeSafeData, paths, globalVm)
 
   const successfullyChanged = []
 
   if (!error && changes.length) {
     if (!sameAsCurrent) {
-      yield processUser(userData)
+      yield * processUser(userData)
     }
     successfullyChanged.push(...changes)
   }
@@ -191,8 +216,11 @@ export function* saveVmsOptions (action: SaveVmsOptionsActionType): Generator<an
   yield put(setOption({ key: ['results', 'vms'], value: { successfullyChanged, correlationId, vmIds } }))
 }
 
+export function* resumeNotifications (): any {
+  yield put(setOption({ key: ['global', 'showNotifications'], value: true }))
+}
+
 export default [
-  takeEvery(SAVE_OPTION, saveOption),
   takeEvery(SAVE_SSH_KEY, saveSSHKey),
   takeLatest(SAVE_GLOBAL_OPTIONS, withLoadingUserOptions(saveGlobalOptions)),
   takeLatest(SAVE_VMS_OPTIONS, withLoadingUserOptions(saveVmsOptions)),

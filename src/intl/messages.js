@@ -109,7 +109,7 @@ export const messages: { [messageId: string]: MessageType } = {
     description: 'Conflicting changes modal dialog - title',
   },
   conflictingChangesDetails: {
-    message: 'The data has changed on the server while editing. Do you wish to overwite those changes?',
+    message: 'The data has changed while editing. Do you wish to overwite those changes?',
     description: 'Conflicting changes modal dialog - main message',
   },
   conflictingChangesList: {

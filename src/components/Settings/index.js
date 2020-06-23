@@ -19,7 +19,9 @@ const changedInTheMeantime = ({ currentValues = {}, baseValues = {}, draftValues
 
 const pendingUserChanges = ({ currentValues = {}, draftValues = {} }) => {
   return Object.keys(currentValues).filter(name =>
-    currentValues[name] !== draftValues[name])
+    currentValues[name] !== draftValues[name] &&
+    draftValues[name] !== undefined
+  )
 }
 
 const changedInPrevTransaction = ({ currentValues = {}, sentValues = {} }) => {
@@ -35,7 +37,7 @@ const stillPending = ({ currentValues = {}, sentValues = {} }) => {
 
 const Settings = (props) => {
   const [correlationId, setCorrelationId] = useState(null)
-  const { draftValues, onSave, lastCorrelationId, onCancel, names, baseValues, sentValues, currentValues, resetBaseValues } = props
+  const { draftValues, onSave, lastCorrelationId, onCancel, names, baseValues, sentValues, currentValues, resetBaseValues, isLeavingPage } = props
 
   const handleSave = () => {
     const saveFields = pendingUserChanges(props).reduce((acc, cur) => ({ ...acc, [cur]: draftValues[cur] }), {})
@@ -45,29 +47,34 @@ const Settings = (props) => {
   }
 
   const conflictingChanges = changedInTheMeantime({ currentValues, baseValues, draftValues, sentValues }).map(field => names[field])
-
-  const fullSuccess = changedInPrevTransaction(props).length !== 0 &&
-   stillPending(props).length === 0 &&
-   correlationId === lastCorrelationId
-  const completeFailure = changedInPrevTransaction(props).length === 0 &&
-   stillPending(props).length !== 0 &&
-   correlationId === lastCorrelationId
-  const partialSuccess = changedInPrevTransaction(props).length !== 0 &&
-   stillPending(props).length !== 0 &&
-   correlationId === lastCorrelationId
-
   const pendingChanges = pendingUserChanges(props)
+  const stillPendingAfterSave = stillPending(props)
+  const changedInPrevTrans = changedInPrevTransaction(props)
+
+  if (conflictingChanges.length) {
+    console.warn(`Store content changed while editing settings for fields: ${JSON.stringify(conflictingChanges)}`)
+  }
+
+  const fullSuccess = changedInPrevTrans.length !== 0 &&
+   stillPendingAfterSave.length === 0 &&
+   correlationId === lastCorrelationId
+  const completeFailure = changedInPrevTrans.length === 0 &&
+   stillPendingAfterSave.length !== 0 &&
+   correlationId === lastCorrelationId
+  const partialSuccess = changedInPrevTrans.length !== 0 &&
+   stillPendingAfterSave.length !== 0 &&
+   correlationId === lastCorrelationId
 
   const [showFullSuccess, setShowFullSuccess] = useState(false)
   const [showCompleteFailure, setShowCompleteFailure] = useState(false)
   const [partialSave, setShowPartialSave] = useState({ show: false, fields: [] })
 
   useEffect(() => {
-    const state = {
+    const partialSaveState = {
       show: partialSuccess,
       fields: pendingChanges.map(e => <p key={names[e]}>{names[e]}</p>),
     }
-    if (state.show) { setShowPartialSave(state) }
+    if (partialSaveState.show) { setShowPartialSave(partialSaveState) }
     if (completeFailure) { setShowCompleteFailure(completeFailure) }
     if (fullSuccess) { setShowFullSuccess(fullSuccess) }
     if (fullSuccess || completeFailure || partialSuccess) {
@@ -79,7 +86,7 @@ const Settings = (props) => {
   })
 
   return <React.Fragment>
-    <NavigationPrompt when={!!pendingChanges.length}>
+    <NavigationPrompt when={(currentLocation, nextLocation) => isLeavingPage ? isLeavingPage({ currentLocation, nextLocation, changes: !!pendingChanges.length }) : !!pendingChanges.length}>
       {({ isActive, onConfirm, onCancel }) => (
         <NavigationConfirmationModal show={isActive} onYes={onConfirm} onNo={onCancel} />
       )}
@@ -89,7 +96,7 @@ const Settings = (props) => {
       {partialSave.fields}
     </CounterAlert> }
     { showCompleteFailure && <CounterAlert type='error' onDismiss={() => setShowCompleteFailure(false)} title={msg.failedToSaveChanges()} /> }
-    <SettingsToolbar onSave={handleSave} onCancel={onCancel} enableSave={!!pendingChanges.length} staleFields={conflictingChanges} />
+    <SettingsToolbar onSave={handleSave} onCancel={onCancel} enableSave={!!pendingChanges.length} />
 
     {props.children}
   </React.Fragment>
@@ -105,6 +112,7 @@ Settings.propTypes = {
   onCancel: PropTypes.func.isRequired,
   children: PropTypes.node,
   resetBaseValues: PropTypes.func.isRequired,
+  isLeavingPage: PropTypes.func,
 }
 
 export default Settings
