@@ -23,6 +23,7 @@ import {
   fetchSinglePool,
   fetchSingleVm,
   fetchVms,
+  fetchCurrentUser,
   selectVmDetail,
 } from './index'
 import { getConsoleOptions } from './console'
@@ -64,6 +65,7 @@ const pagesRefreshers = {
   [C.DETAIL_PAGE_TYPE]: refreshDetailPage,
   [C.CREATE_PAGE_TYPE]: refreshCreatePage,
   [C.CONSOLE_PAGE_TYPE]: refreshConsolePage,
+  [C.SETTINGS_PAGE_TYPE]: fetchCurrentUser,
 }
 
 function* getIdsByType (type) {

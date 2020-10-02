@@ -25,6 +25,9 @@ import type {
   ApiPermissionType, PermissionType,
   ApiEventType, EventType,
   ApiRoleType, RoleType,
+  ApiUserType, UserType,
+  GlobalUserSettingsType,
+  UserOptionsType,
 } from './types'
 
 import { isWindows } from '_/helpers'
@@ -949,6 +952,76 @@ const Event = {
   toApi: undefined,
 }
 
+function mapGlobal ({ updateRate, language }: Object = {}): GlobalUserSettingsType {
+  return {
+    updateRate,
+    language,
+    // local only options
+    showNotifications: undefined,
+    notificationSnoozeDuration: undefined,
+  }
+}
+
+const UserOptions = {
+  toInternal: (receivedOptions: Object = {}): UserOptionsType => {
+    return {
+      global: mapGlobal(receivedOptions.global),
+      ssh: undefined,
+      consoleOptions: {},
+      lastTransactions: {},
+      loadingFinished: false,
+    }
+  },
+  toApi: (client: UserOptionsType, server: Object = {}): Object => {
+    const { global: serverGlobal = {}, ...serverRest } = server
+    const { global: { updateRate, language } = {} } = client
+
+    const merged = {
+      global: {
+        // assume no nested objects
+        // values from the client overwrite all known remote properties
+        ...serverGlobal,
+        updateRate,
+        language,
+      },
+      // copy all unknown properties
+      ...serverRest,
+    }
+
+    const properties = Object.entries(merged)
+      .map(([key, value]) => ({
+        name: key,
+        // double encoding - value is transferred as a string
+        value: JSON.stringify(value),
+      }))
+
+    return {
+      user_options: {
+        property: properties,
+      },
+    }
+  },
+}
+
+const User = {
+  toInternal ({ user, user: { user_options: { property: user_options = [] } = {} } = {} }: { user: ApiUserType }): UserType {
+    const raw = Object.fromEntries(
+      // values are double encoded
+      user_options.map(({ name, value }) => ([ name, JSON.parse(value) ]))
+    )
+
+    return {
+      userName: user.user_name,
+      lastName: user.last_name,
+      email: user.email,
+      principal: user.principal,
+      receivedOptions: raw,
+    }
+  },
+
+  toApi: undefined,
+}
+
 //
 // Export each transforms individually so they can be consumed individually
 //
@@ -976,4 +1049,6 @@ export {
   Permissions,
   Event,
   Role,
+  User,
+  UserOptions,
 }
