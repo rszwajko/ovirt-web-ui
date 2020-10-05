@@ -22,6 +22,7 @@ import {
   SHOW_TOKEN_EXPIRED_MSG,
   START_SCHEDULER_FIXED_DELAY,
   STOP_SCHEDULER_FIXED_DELAY,
+  REFRESH_FINISHED,
   UPDATE_PAGING_DATA,
 } from '_/constants'
 
@@ -54,7 +55,7 @@ export function manualRefresh () {
 
 export function startSchedulerFixedDelay ({
   delayInSeconds = AppConfiguration.schedulerFixedDelayInSeconds,
-  startDelayInSeconds = AppConfiguration.schedulerFixedDelayInSeconds,
+  startDelayInSeconds,
   targetPage,
   pageRouterRefresh = false,
   manualRefresh = false,
@@ -235,6 +236,15 @@ export function setDefaultTimezone ({
     payload: {
       defaultGeneralTimezone,
       defaultWindowsTimezone,
+    },
+  }
+}
+
+export function refreshFinished () {
+  return {
+    type: REFRESH_FINISHED,
+    payload: {
+      time: Date.now(),
     },
   }
 }
