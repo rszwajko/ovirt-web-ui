@@ -1,5 +1,6 @@
 import {
   ADD_USER_MESSAGE,
+  CLEAR_OLD_LOG_ENTRIES,
   CLEAR_USER_MSGS,
   DISMISS_EVENT,
   DISMISS_USER_MSG,
@@ -21,6 +22,10 @@ export function addUserMessage ({ message, shortMessage, type = '' }) {
 
 export function clearUserMessages () {
   return { type: CLEAR_USER_MSGS }
+}
+
+export function clearOldLogEntries () {
+  return { type: CLEAR_OLD_LOG_ENTRIES }
 }
 
 export function setNotificationNotified ({ eventId }) {

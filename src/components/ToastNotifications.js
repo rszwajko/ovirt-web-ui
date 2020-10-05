@@ -4,6 +4,7 @@ import { connect } from 'react-redux'
 
 import { TimedToastNotification, ToastNotificationList } from 'patternfly-react'
 import { setNotificationNotified } from '_/actions'
+import AppConfiguration from '_/config'
 
 import style from './sharedStyle.css'
 
@@ -13,31 +14,36 @@ function normalizeType (theType) {
   return isExpected ? theType : 'warning'
 }
 
-const ToastNotifications = ({ userMessages, onDismissNotification }) => {
+const ToastNotifications = ({ userMessages, showNotifications, onDismissNotification }) => {
   return <ToastNotificationList>
-    { userMessages.get('records').filter(r => !r.get('notified')).map(r =>
-      <TimedToastNotification
-        className={style['toast-margin-top']}
-        type={normalizeType(r.get('type'))}
-        onDismiss={() => onDismissNotification(r.get('id'))}
-        key={r.get('time')}
-      >
-        <span>
-          {r.get('message')}
-        </span>
-      </TimedToastNotification>
-    )}
+    { showNotifications && userMessages.get('records')
+      .filter(r => !r.get('notified'))
+      .map(r =>
+        <TimedToastNotification
+          className={style['toast-margin-top']}
+          type={normalizeType(r.get('type'))}
+          onDismiss={() => onDismissNotification(r.get('id'))}
+          key={r.get('time')}
+          timerdelay={1000 * AppConfiguration.toastNotificationDisplayTimeInSec}
+        >
+          <span>
+            {r.get('message')}
+          </span>
+        </TimedToastNotification>
+      )}
   </ToastNotificationList>
 }
 
 ToastNotifications.propTypes = {
   userMessages: PropTypes.object.isRequired,
+  showNotifications: PropTypes.bool,
   onDismissNotification: PropTypes.func.isRequired,
 }
 
 export default connect(
-  (state) => ({
-    userMessages: state.userMessages,
+  ({ userMessages, options }) => ({
+    userMessages,
+    showNotifications: options.getIn(['global', 'showNotifications'], true),
   }),
   (dispatch) => ({
     onDismissNotification: (eventId) => dispatch(setNotificationNotified({ eventId })),

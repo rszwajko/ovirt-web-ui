@@ -1,6 +1,7 @@
 import Immutable from 'immutable'
 import {
   ADD_USER_MESSAGE,
+  CLEAR_OLD_LOG_ENTRIES,
   DISMISS_USER_MSG,
   FAILED_EXTERNAL_ACTION,
   LOGIN_FAILED,
@@ -9,6 +10,7 @@ import {
 } from '_/constants'
 import { actionReducer } from './utils'
 import uniqueId from 'lodash/uniqueId'
+import AppConfiguration from '_/config'
 
 /*flow-include
 import type { FailedExternalAction } from '../actions/error'
@@ -75,6 +77,11 @@ const userMessages = actionReducer(initialState, {
   [DISMISS_USER_MSG] (state, { payload: { eventId } }) {
     return state.update('records', records => records.delete(state.get('records').findIndex(r => r.get('id') === eventId)))
   },
+  [CLEAR_OLD_LOG_ENTRIES] (state) {
+    const tresholdAge = Date.now() - 2 * 1000 * AppConfiguration.toastNotificationDisplayTimeInSec
+    return state.update('records', records => records.filter(r => r.get('time') > tresholdAge))
+  },
+
 })
 
 export default userMessages
