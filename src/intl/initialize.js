@@ -14,6 +14,7 @@ import 'moment-duration-format'
 
 import { BASE_LOCALE_SET, DEFAULT_LOCALE, DUMMY_LOCALE } from './index'
 import { timeDurations } from './time-durations'
+import { loadFromLocalStorage } from '_/storage'
 
 export function initIntl (forceLocale: ?string): string {
   const locale: string = forceLocale || discoverUserLocale()
@@ -25,10 +26,15 @@ export function initIntl (forceLocale: ?string): string {
 }
 
 function discoverUserLocale (): string {
-  return getLocaleFromUrl() || getBrowserLocale() || DEFAULT_LOCALE
+  return getLocaleFromUrl() || loadLocaleFromLocalStorage() || getBrowserLocale() || DEFAULT_LOCALE
 }
 
-function getLocaleFromUrl (): ?string {
+function loadLocaleFromLocalStorage (): ?string {
+  const { global: { language } = {} } = JSON.parse(loadFromLocalStorage('options')) || {}
+  return language
+}
+
+export function getLocaleFromUrl (): ?string {
   const localeMatch = /locale=(\w{2}([-_]\w{2})?)/.exec(window.location.search)
   if (localeMatch === null) {
     return null

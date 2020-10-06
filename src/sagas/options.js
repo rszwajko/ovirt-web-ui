@@ -15,6 +15,7 @@ import {
 
 import type { SaveGlobalOptionsActionType } from '_/actions/types'
 import { fromJS } from 'immutable'
+import { duration } from 'moment'
 
 /**
  * Internal type to formalize result returned from
@@ -184,7 +185,7 @@ function* updateNotifications (show: {current: boolean, next?: boolean}, snooze:
   yield put(A.setOption({ key: ['global', 'notificationSnoozeDuration'], value: snoozeDuration }))
   if (showNotifications) {
     yield put(A.stopSchedulerForResumingNotifications())
-  } else {
+  } else if (duration < Number.MAX_SAFE_INTEGER) {
     // minutes -> seconds
     yield put(A.startSchedulerForResumingNotifications(snoozeDuration * 60))
   }

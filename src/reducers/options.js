@@ -12,6 +12,7 @@ import {
 } from '_/constants'
 import { actionReducer } from './utils'
 import { locale } from '_/intl'
+import { saveToLocalStorage } from '_/storage'
 import AppConfiguration from '_/config'
 import type { UserOptionsType } from '_/ovirtapi/types'
 import type { LoadUserOptionsActionType } from '_/actions/types'
@@ -63,6 +64,12 @@ const options = actionReducer(initialState, {
       return server
     }, serverState)
 
+    // use the same structure in Redux store and in local storage
+    saveToLocalStorage('options', JSON.stringify({
+      global: {
+        language: merged.getIn(['global', 'language']),
+      },
+    }))
     return merged
   },
   [SET_OPTION] (state: any, { payload: { key, value } }: any): any {

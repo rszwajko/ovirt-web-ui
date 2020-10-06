@@ -1,7 +1,7 @@
 import $ from 'jquery'
 
-import { getURLQueryParameterByName } from '_/helpers'
 import { setLogDebug } from './logger'
+import { localeFromUrl } from '_/intl'
 
 const CONFIG_URL = '/ovirt-engine/web-ui/ovirt-web-ui.config'
 
@@ -19,13 +19,11 @@ const AppConfiguration = {
   cockpitPort: '9090',
 
   queryParams: { // from URL
-    locale: null,
+    locale: localeFromUrl,
   },
 }
 
 export function readConfiguration () {
-  parseQueryParams()
-
   return new Promise((resolve, reject) => {
     $.ajax({
       url: CONFIG_URL,
@@ -42,12 +40,6 @@ export function readConfiguration () {
       async: true,
     })
   })
-}
-
-function parseQueryParams () {
-  // TODO: align this with intl/index.js:getLocaleFromUrl()
-  AppConfiguration.queryParams.locale = getURLQueryParameterByName('locale')
-  console.log('parseQueryParams, provided locale: ', AppConfiguration.queryParams.locale)
 }
 
 export default AppConfiguration
