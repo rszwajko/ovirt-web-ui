@@ -134,7 +134,7 @@ class GlobalSettings extends Component {
 
   buildSections (onChange) {
     const { draftValues, translatedLabels } = this.state
-    const { config } = this.props
+    const { config, hasRemoteOptions } = this.props
     const idPrefix = 'global-user-settings'
     return {
       general: {
@@ -150,6 +150,7 @@ class GlobalSettings extends Component {
           },
           {
             title: translatedLabels.language,
+            disabled: !hasRemoteOptions,
             body: (
               <div className={style['half-width']}>
                 <SelectBox
@@ -181,6 +182,7 @@ class GlobalSettings extends Component {
       refreshInterval: {
         title: msg.refreshInterval(),
         tooltip: msg.refreshIntervalTooltip(),
+        disabled: !hasRemoteOptions,
         fields: [
           {
             title: translatedLabels.updateRate,
@@ -261,6 +263,7 @@ GlobalSettings.propTypes = {
   currentValues: PropTypes.object.isRequired,
   config: PropTypes.object.isRequired,
   lastTransactionId: PropTypes.string,
+  hasRemoteOptions: PropTypes.bool,
   saveOptions: PropTypes.func.isRequired,
   goToMainPage: PropTypes.func.isRequired,
 }
@@ -279,6 +282,7 @@ export default connect(
       updateRate: options.getIn(['global', 'updateRate']),
     },
     lastTransactionId: options.getIn(['lastTransactions', 'global', 'transactionId'], ''),
+    hasRemoteOptions: !!config.getIn(['user', 'receivedOptions']),
   }),
 
   (dispatch) => ({

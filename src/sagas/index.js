@@ -277,17 +277,23 @@ export function* fetchPools (action) {
 
 export function* fetchCurrentUser () {
   const userId = yield select((state) => state.config.getIn(['user', 'id']))
-  const user = yield callExternalAction('user', Api.user, {
-    payload: {
-      userId,
+  const result = yield callExternalAction(
+    'user',
+    Api.user,
+    {
+      payload: {
+        userId,
+      },
     },
-  })
+    true
+  )
 
-  if (user) {
-    yield processUser(user)
-    yield put(getSSHKey({ userId }))
-    yield put(loadingUserOptionsFinished())
+  if (!result.error) {
+    yield processUser(result)
   }
+
+  yield put(getSSHKey({ userId }))
+  yield put(loadingUserOptionsFinished())
 }
 
 export function* processUser (user) {

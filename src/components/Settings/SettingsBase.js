@@ -43,16 +43,18 @@ const Section = ({ name, section }) => (
       {section.title}
       { section.tooltip && <InfoTooltip id={`${name}-info-tooltip`} tooltip={section.tooltip} /> }
     </h3>
-    { section.fields.map((field) => (
-      <FormGroup key={field.title} className={style['settings-field']}>
-        <LabelCol fieldPath={`${name}-${field.title}`} tooltip={field.tooltip} sm={3} className={style['field-label']}>
-          { field.title }
-        </LabelCol>
-        <Col sm={9}>
-          {field.body}
-        </Col>
-      </FormGroup>
-    )) }
+    { section.fields
+      .filter(field => !field.disabled)
+      .map((field) => (
+        <FormGroup key={field.title} className={style['settings-field']}>
+          <LabelCol fieldPath={`${name}-${field.title}`} tooltip={field.tooltip} sm={3} className={style['field-label']}>
+            { field.title }
+          </LabelCol>
+          <Col sm={9}>
+            {field.body}
+          </Col>
+        </FormGroup>
+      )) }
   </React.Fragment>
 )
 
@@ -62,7 +64,9 @@ Section.propTypes = {
 }
 
 const SettingsBase = ({ sections }) => {
-  const existingSections = Object.entries(sections).filter(([key, section]) => !!section)
+  const existingSections = Object.entries(sections)
+    .filter(([key, section]) => !!section)
+    .filter(([key, section]) => !section.disabled)
   return (
     <div className={style['search-content-box']}>
       { existingSections.map(([key, section]) => (
