@@ -4,7 +4,6 @@ import pick from 'lodash/pick'
 import Product from '_/version'
 import Api, { Transforms } from '_/ovirtapi'
 import AppConfiguration from '_/config'
-import OptionsManager from '_/optionsManager'
 
 import {
   loginSuccessful,
@@ -28,10 +27,6 @@ import {
   getUserGroups,
   getUser,
 
-  downloadConsole,
-  getSingleVm,
-
-  updateVms,
   saveVmsFilters,
 } from '_/actions'
 
@@ -50,13 +45,11 @@ import {
   fetchAllTemplates,
   fetchUserGroups,
 } from './base-data'
-import { downloadVmConsole } from './console'
 import { fetchRoles } from './roles'
 import { fetchServerConfiguredValues, fetchGeneralEngineOption } from './server-configs'
 import { fetchDataCentersAndStorageDomains, fetchIsoFiles } from './storageDomains'
 import { loadIconsFromLocalStorage } from './osIcons'
 import {
-  transformAndPermitVm,
   fetchCurrentUser,
 } from './index'
 
@@ -113,7 +106,6 @@ function* login (action) {
   console.groupEnd('Login Data Fetch')
 
   yield put(appConfigured())
-  yield autoConnectCheck()
   yield put(getAllEvents())
 
   // Note: The initial data needed to render the App's initial route will be loaded by
@@ -215,7 +207,7 @@ function* initialLoad () {
     call(fetchAllOS, getAllOperatingSystems()),
     call(fetchAllHosts, getAllHosts()),
     call(loadFilters),
-    call(loadUserOptions),
+    call(loadUserOptions, { isLogin: true }),
   ])
   console.log('\u2714 data loads with no prerequisites are complete')
   console.groupEnd('no data prerequisites')
@@ -241,20 +233,6 @@ function* initialLoad () {
   removeFromLocalStorage('options')
 
   // Vms and Pools are loaded as needed / accessed
-}
-
-function* autoConnectCheck () {
-  const vmId = OptionsManager.loadAutoConnectOption()
-  if (vmId && vmId.length > 0) {
-    const vm = yield callExternalAction('getVm', Api.getVm, getSingleVm({ vmId }), true)
-    if (vm && vm.error && vm.error.status === 404) {
-      OptionsManager.clearAutoConnect()
-    } else if (vm && vm.id && vm.status !== 'down') {
-      const internalVm = yield transformAndPermitVm(vm)
-      yield put(updateVms({ vms: [internalVm] }))
-      yield downloadVmConsole(downloadConsole({ vmId, hasGuestAgent: internalVm.ssoGuestAgent }))
-    }
-  }
 }
 
 export default [

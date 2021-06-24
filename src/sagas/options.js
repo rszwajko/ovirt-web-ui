@@ -11,6 +11,7 @@ import * as C from '_/constants'
 import type { SaveGlobalOptionsActionType } from '_/actions/types'
 import type { UserOptionType, RemoteUserOptionsType } from '_/ovirtapi/types'
 import { generateUnique } from '_/helpers'
+// import { autoConnect } from '_/sagas/console'
 
 /**
  * Internal type to formalize result returned from
@@ -86,11 +87,28 @@ function* fetchUserOptions (action: Object): any {
 
   yield put(A.loadUserOptions(remoteOptions))
 
-  const { locale, persistLocale: { content: persistLocale = true } = {} } = remoteOptions
+  const {
+    locale,
+    persistLocale: { content: persistLocale = true } = {},
+    autoconnect: { content: autoconnect = '' } = {},
+  } = remoteOptions
 
-  if (!locale && persistLocale) {
+  const { payload: { isLogin } = {} } = action
+
+  if (isLogin && !locale && persistLocale) {
     // locale is not saved on the server and locale persistence is enabled
     yield put({ type: C.EXPORT_LOCALE })
+  }
+
+  if (isLogin) {
+    // TODO
+    // read & remove autoconnect from local storage
+    // export to the server if value exist
+  }
+
+  if (isLogin && autoconnect) {
+    // TODO
+    // yield call(autoConnect, autoconnect)
   }
 }
 
@@ -169,6 +187,7 @@ function* saveLocale ([localePropName, submittedLocale]: any, persistLocale: boo
 
 function* saveGlobalOptions ({
   payload: {
+    autoconnect,
     sshKey,
     showNotifications,
     notificationSnoozeDuration,
@@ -194,6 +213,7 @@ function* saveGlobalOptions ({
     fullScreenSpice: call(saveRemoteOption, ...Object.entries({ fullScreenSpice })),
     ctrlAltEndSpice: call(saveRemoteOption, ...Object.entries({ ctrlAltEndSpice })),
     smartcardSpice: call(saveRemoteOption, ...Object.entries({ smartcardSpice })),
+    autoconnect: call(saveRemoteOption, ...Object.entries({ autoconnect })),
   })
 
   yield all(
@@ -292,10 +312,11 @@ export function* resumeNotifications (): any {
     })
 }
 
-export function* loadUserOptions (): any {
+export function* loadUserOptions ({ isLogin = false }: any = {}): any {
   const userId = yield select(state => state.config.getIn(['user', 'id']))
   yield put(A.getSSHKey({ userId }))
-  yield put(A.fetchUserOptions({ userId }))
+  console.warn('fetchUserOptions', isLogin)
+  yield put(A.fetchUserOptions({ userId, isLogin }))
 }
 
 export default [

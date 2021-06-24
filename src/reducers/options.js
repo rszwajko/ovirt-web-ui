@@ -15,6 +15,10 @@ const defaultOptions: UserOptionsType = {
     notificationSnoozeDuration: AppConfiguration.notificationSnoozeDurationInMinutes,
   },
   remoteOptions: {
+    autoconnect: {
+      id: undefined,
+      content: '',
+    },
     locale: {
       id: undefined,
       content: locale,
