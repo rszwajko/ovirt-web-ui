@@ -7,7 +7,6 @@ import {
   DELETE_VM_NIC,
   EDIT_VM_NIC,
   EDIT_VM,
-  GET_RDP_VM,
   GET_VM,
   GET_VM_CDROM,
   GET_VMS,
@@ -331,18 +330,6 @@ export function setVmSnapshots ({ vmId, snapshots }) {
     payload: {
       vmId,
       snapshots,
-    },
-  }
-}
-
-export function getRDP ({ vmName, username, domain, fqdn }) {
-  return {
-    type: GET_RDP_VM,
-    payload: {
-      vmName,
-      username,
-      domain,
-      fqdn,
     },
   }
 }
