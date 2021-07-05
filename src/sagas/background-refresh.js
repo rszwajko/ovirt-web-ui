@@ -4,7 +4,6 @@ import {
 } from './options'
 
 import {
-  all,
   call,
   put,
   race,
@@ -24,10 +23,6 @@ import { delay } from './utils'
 
 import {
   fetchByPage,
-  fetchPools,
-  fetchSinglePool,
-  fetchSingleVm,
-  fetchVms,
   selectVmDetail,
 } from './index'
 import { getConsoleOptions } from './console'
@@ -89,11 +84,6 @@ const pagesRefreshers = {
   [C.SETTINGS_PAGE_TYPE]: loadUserOptions,
 }
 
-function* getIdsByType (type) {
-  const ids = Array.from(yield select(state => state.vms.get(type).keys()))
-  return ids
-}
-
 function* refreshListPage () {
   const [vmsPage, vmsExpectMorePages, poolsPage, poolsExpectMorePages] = yield select(st => [
     st.vms.get('vmsPage'), st.vms.get('vmsExpectMorePages'),
@@ -103,68 +93,7 @@ function* refreshListPage () {
   // list page initial state - fetch the first page
   if (vmsPage === 0 && vmsExpectMorePages && poolsPage === 0 && poolsExpectMorePages) {
     yield fetchByPage()
-    return
   }
-
-  const [vmsCount, poolsCount] = yield all([
-    call(function* () {
-      // refresh VMs and remove any that haven't been refreshed
-      if (vmsPage > 0) {
-        const fetchedVmIds = yield fetchVms(Actions.getVmsByCount({
-          count: vmsPage * AppConfiguration.pageLimit,
-        }))
-
-        const vmsIds = yield getIdsByType('vms')
-        const fetchedDirectlyVmIds =
-          (yield all(
-            vmsIds
-              .filter(vmId => !fetchedVmIds.includes(vmId))
-              .map(vmId => call(fetchSingleVm, Actions.getSingleVm({ vmId, shallowFetch: true })))
-          ))
-            .reduce((vmIds, vm) => { if (vm) vmIds.push(vm.id); return vmIds }, [])
-
-        yield put(Actions.removeMissingVms({ vmIdsToPreserve: [...fetchedVmIds, ...fetchedDirectlyVmIds] }))
-      }
-
-      return yield select(state => state.vms.get('vms').size)
-    }),
-
-    call(function* () {
-      // refresh Pools and remove any that haven't been refreshed
-      if (poolsPage > 0) {
-        const fetchedPoolIds = yield fetchPools(Actions.getPoolsByCount({
-          count: poolsPage * AppConfiguration.pageLimit,
-        }))
-
-        const filteredPoolIds = yield getIdsByType('pools')
-        const fetchedDirectlyPoolIds =
-          (yield all(
-            filteredPoolIds
-              .filter(poolId => !fetchedPoolIds.includes(poolId))
-              .map(poolId => call(fetchSinglePool, Actions.getSinglePool({ poolId })))
-          ))
-            .reduce((poolIds, pool) => { if (pool) poolIds.push(pool.id); return poolIds }, [])
-
-        yield put(Actions.removeMissingPools({ poolIdsToPreserve: [...fetchedPoolIds, ...fetchedDirectlyPoolIds] }))
-      }
-
-      return yield select(state => state.vms.get('pools').size)
-    }),
-  ])
-
-  //
-  // Since it is possible that VMs or Pools have been added since the last refresh,
-  // and another page of data could be available, the *ExpectMorePages values need
-  // to be updated.  Similar to `fetchByPage()`, assume there is more to fetch if the
-  // size of VMs/Pools is full.
-  //
-  yield put(Actions.updatePagingData({
-    vmsExpectMorePages: vmsCount >= vmsPage * AppConfiguration.pageLimit,
-    poolsExpectMorePages: poolsCount >= poolsPage * AppConfiguration.pageLimit,
-  }))
-
-  // update counts
-  yield put(Actions.updateVmsPoolsCount())
 }
 
 function* refreshDetailPage ({ id, manualRefresh }) {

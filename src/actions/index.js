@@ -176,14 +176,14 @@ export function getByPage () {
   return { type: GET_BY_PAGE }
 }
 
-export function updatePagingData ({ vmsPage, vmsExpectMorePages, poolsPage, poolsExpectMorePages }) {
+export function updatePagingData ({ vmsPage, vms, poolsPage, pools }) {
   return {
     type: UPDATE_PAGING_DATA,
     payload: {
       vmsPage,
-      vmsExpectMorePages,
       poolsPage,
-      poolsExpectMorePages,
+      vms,
+      pools,
     },
   }
 }

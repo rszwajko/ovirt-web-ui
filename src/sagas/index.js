@@ -159,67 +159,41 @@ export function* fetchByPage () {
     vms.get('vmsPage'), !!vms.get('vmsExpectMorePages'),
     vms.get('poolsPage'), !!vms.get('poolsExpectMorePages'),
   ])
-
-  function* currentVmsIds ({ payload: { count, page } }) {
-    const start = count * page
-    const end = start + count
-    return Array.from(yield select(state => state.vms.get('vms').keys())).slice(start, end)
-  }
-
-  function* currentPoolsIds ({ payload: { count, page } }) {
-    const start = count * page
-    const end = start + count
-    return Array.from(yield select(state => state.vms.get('pools').keys())).slice(start, end)
-  }
-
-  //
-  // If more pages are expected, fetch the next page and grab the ids fetched
-  // If no more pages are expected, grab the current page of ids from the redux store
-  //
   const count = AppConfiguration.pageLimit
+  const calls = []
+  if (vmsExpectMorePages) {
+    calls.push(call(fetchVms, { payload: { count, page: vmsPage + 1 } }))
+  }
+  if (poolsExpectMorePages) {
+    calls.push(call(fetchPools, { payload: { count, page: poolsPage + 1 } }))
+  }
+
   const [vms, pools] = yield all([
-    call(vmsExpectMorePages ? fetchVms : currentVmsIds, { payload: { count, page: vmsPage + 1 } }),
-    call(poolsExpectMorePages ? fetchPools : currentPoolsIds, { payload: { count, page: poolsPage + 1 } }),
+    ...calls,
   ])
 
-  //
-  // Since the REST API doesn't give a record count in paginated responses, we have
-  // to guess if there is more to fetch.  Assume there is more to fetch if the page
-  // of ids fetched/accessed is full.
-  //
   yield put(updatePagingData({
+    vms,
+    pools,
     vmsPage: vmsExpectMorePages ? vmsPage + 1 : undefined,
-    vmsExpectMorePages: vms.length >= count,
     poolsPage: poolsExpectMorePages ? poolsPage + 1 : undefined,
-    poolsExpectMorePages: pools.length >= count,
   }))
 }
 
 export function* fetchVms ({ payload: { count, page, shallowFetch = true } }) {
-  const fetchedVmIds = []
-
+  const internalVms = []
   const additional = shallowFetch ? VM_FETCH_ADDITIONAL_SHALLOW : VM_FETCH_ADDITIONAL_DEEP
   const apiVms = yield callExternalAction('getVms', Api.getVms, { payload: { count, page, additional } })
   if (apiVms && apiVms.vm) {
-    const internalVms = []
     for (const apiVm of apiVms.vm) {
       const internalVm = yield transformAndPermitVm(apiVm)
-      fetchedVmIds.push(internalVm.id)
       internalVms.push(internalVm)
     }
 
-    yield put(updateVms({ vms: internalVms, copySubResources: shallowFetch }))
     yield fetchUnknownIcons({ vms: internalVms })
-
-    // NOTE: No need to fetch the current=true cdrom info at this point. The cdrom info
-    //       is needed on the VM details page and `fetchSingleVm` is called upon entry
-    //       to the details page. The `fetchSingleVm` fetch includes loading the
-    //       appropriate cdrom info based on the VM's state. See `fetchSingleVm` for more
-    //       details.
   }
 
-  yield put(updateVmsPoolsCount())
-  return fetchedVmIds
+  return internalVms
 }
 
 export function* fetchSingleVm (action) {
@@ -268,18 +242,13 @@ export function* fetchSingleVm (action) {
 }
 
 export function* fetchPools (action) {
-  const fetchedPoolIds = []
-
+  let internalPools = []
   const apiPools = yield callExternalAction('getPools', Api.getPools, action)
   if (apiPools && apiPools.vm_pool) {
-    const internalPools = apiPools.vm_pool.map(pool => Api.poolToInternal({ pool }))
-    internalPools.forEach(pool => fetchedPoolIds.push(pool.id))
-
-    yield put(updatePools({ pools: internalPools }))
-    yield put(updateVmsPoolsCount())
+    internalPools = apiPools.vm_pool.map(pool => Api.poolToInternal({ pool }))
   }
 
-  return fetchedPoolIds
+  return internalPools
 }
 
 export function* fetchCurrentUser () {
