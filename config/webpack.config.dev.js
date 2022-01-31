@@ -14,9 +14,9 @@ import CleanTerminalPlugin from 'clean-terminal-webpack-plugin'
 import postcssPresetEnv from 'postcss-preset-env'
 import paths from './paths.cjs'
 import env from './env.js'
-import { createRequire } from 'module'
-const require = createRequire(import.meta.url)
-const appPackageJson = require(paths.appPackageJson)
+// import { createRequire } from 'module'
+// const require = createRequire(import.meta.url)
+// const appPackageJson = require(paths.appPackageJson)
 
 const imageInlineSizeLimit = parseInt(process.env.IMAGE_INLINE_SIZE_LIMIT, 10) || 8192
 
@@ -101,64 +101,30 @@ export default ({
     ],
 
     output: {
-      // Next line is not used in dev but WebpackDevServer crashes without it:
       path: paths.appBuild,
-      // Add /* filename */ comments to generated require()s in the output.
-      pathinfo: true,
-      // This does not produce a real file. It's just the virtual path that is
-      // served by WebpackDevServer in development. This is the JS bundle
-      // containing code from all our entry points, and the Webpack runtime.
-      filename: 'static/js/bundle.js',
-      chunkFilename: 'static/js/[name].chunk.js',
-      // In development, we always serve from the root. This makes config easier.
       publicPath: publicPath,
-      // Prevents conflicts when multiple webpack runtimes (from different apps)
-      // are used on the same page.
-      jsonpFunction: `webpackJsonp${appPackageJson.name}`,
-      // this defaults to 'window', but by setting it to 'this' then
-      // module chunks which are built will work in web workers as well.
-      globalObject: 'this',
-    },
-
-    optimization: {
-      moduleIds: 'named',
-      // Automatically split vendor and commons
-      splitChunks: {
-        cacheGroups: {
-          vendor: {
-            name: 'vendor',
-            chunks: 'initial',
-            test: /[\\/]node_modules[\\/]/,
-          },
-        },
-      },
-
-      // Keep the runtime chunk separated to enable long term caching
-      runtimeChunk: {
-        name: entrypoint => `runtime-${entrypoint.name}`,
-      },
     },
 
     resolve: {
-      // These are the reasonable defaults supported by the Node ecosystem.
-      // We also include JSX as a common component filename extension to support
-      // some tools, although we do not recommend using it, see:
-      // https://github.com/facebookincubator/create-react-app/issues/290
       extensions: ['.js', '.json', '.jsx'],
-
       alias: {
-        // Support React Native Web
-        // https://www.smashingmagazine.com/2016/08/a-glimpse-into-the-future-with-react-native-for-web/
-        'react-native': 'react-native-web',
         _: `${paths.appSrc}`,
+      },
+      fallback: {
+        module: false,
+        dgram: false,
+        dns: false,
+        fs: false,
+        http2: false,
+        net: false,
+        tls: false,
+        child_process: false,
       },
     },
 
     module: {
       strictExportPresence: true,
       rules: [
-        // Disable require.ensure as it's not a standard language feature.
-        { parser: { requireEnsure: false } },
         {
           // oneOf lets us have a loader w/o a test as a default instead of applying to everything
           // https://webpack.js.org/configuration/module/#ruleoneof
@@ -417,23 +383,6 @@ export default ({
 
       new ESLintPlugin(),
     ],
-
-    // Some libraries import Node modules but don't use them in the browser.
-    // Tell webpack to provide empty mocks for them so importing them works.
-    node: {
-      module: 'empty',
-      dgram: 'empty',
-      dns: 'mock',
-      fs: 'empty',
-      http2: 'empty',
-      net: 'empty',
-      tls: 'empty',
-      child_process: 'empty',
-    },
-
-    // Turn off performance processing because we utilize
-    // our own hints via the FileSizeReporter
-    // performance: false,
   }
 
   if (process.env.V) {
