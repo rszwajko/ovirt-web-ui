@@ -11,7 +11,6 @@ import InlineChunkHtmlPlugin from 'react-dev-utils/InlineChunkHtmlPlugin.js'
 import MiniCssExtractPlugin from 'mini-css-extract-plugin'
 import ModuleNotFoundPlugin from 'react-dev-utils/ModuleNotFoundPlugin.js'
 import CssMinimizerPlugin from 'css-minimizer-webpack-plugin'
-import TerserPlugin from 'terser-webpack-plugin'
 
 import postcssPresetEnv from 'postcss-preset-env'
 import paths from './paths.cjs'
@@ -48,8 +47,6 @@ export default (() => {
     bail: true,
     devtool: 'source-map',
 
-    // These are the "entry points" to our application.
-    // This means they will be the "root" imports that are included in JS bundle.
     entry: [
       paths.appIndexJs,
     ],
@@ -57,8 +54,6 @@ export default (() => {
     output: {
       // The build folder.
       path: paths.appBuild,
-      // Add /* filename */ comments to generated require()s in the output.
-      pathinfo: false,
       // Generated JS file names (with nested folders).
       // There will be one main bundle, and one file per asynchronous chunk.
       // We don't currently advertise code splitting but Webpack supports it.
@@ -66,19 +61,30 @@ export default (() => {
       chunkFilename: 'static/js/[name].[chunkhash:8].chunk.js',
       // We already inferred the "public path"
       publicPath: getPublicPath(),
-      // Prevents conflicts when multiple webpack runtimes (from different apps)
-      // are used on the same page.
-      jsonpFunction: `webpackJsonp${appPackageJson.name}`,
-      // this defaults to 'window', but by setting it to 'this' then
-      // module chunks which are built will work in web workers as well.
-      globalObject: 'this',
+    },
+
+    resolve: {
+      extensions: ['.js', '.json', '.jsx'],
+      alias: {
+        _: `${paths.appSrc}`,
+      },
+      fallback: {
+        module: false,
+        dgram: false,
+        dns: false,
+        fs: false,
+        http2: false,
+        net: false,
+        tls: false,
+        child_process: false,
+      },
     },
 
     optimization: {
       // Automatically split vendor and commons
       splitChunks: {
         cacheGroups: {
-          vendor: {
+          defaultVendors: {
             name: 'vendor',
             chunks: 'initial',
             test: /[\\/]node_modules[\\/]/,
@@ -87,66 +93,23 @@ export default (() => {
       },
 
       // Keep the runtime chunk separated to enable long term caching
-      runtimeChunk: {
-        name: entrypoint => `runtime-${entrypoint.name}`,
-      },
+      runtimeChunk: true,
 
       minimize: true,
       minimizer: [
-        new TerserPlugin({ // minify JS with source maps
-          cache: true,
-          parallel: true,
-          sourceMap: true,
-
-          terserOptions: {
-            parse: {
-              ecma: 8,
-            },
-            compress: {
-              ecma: 5,
-              warnings: false,
-              comparisons: false,
-              inline: 2,
-            },
-            mangle: {
-              safari10: true,
-            },
-
-            // Added for profiling in devtools
-            keep_classnames: true,
-            keep_fnames: true,
-
-            output: {
-              ecma: 5,
-              comments: false,
-              ascii_only: true,
-            },
-          },
-        }),
         new CssMinimizerPlugin(),
+        // access defaults (TerserPlugin)
+        '...',
       ],
     },
 
-    resolve: {
-      // These are the reasonable defaults supported by the Node ecosystem.
-      // We also include JSX as a common component filename extension to support
-      // some tools, although we do not recommend using it, see:
-      // https://github.com/facebookincubator/create-react-app/issues/290
-      extensions: ['.js', '.json', '.jsx'],
-
-      alias: {
-        // Support React Native Web
-        // https://www.smashingmagazine.com/2016/08/a-glimpse-into-the-future-with-react-native-for-web/
-        'react-native': 'react-native-web',
-        _: `${paths.appSrc}`,
-      },
-    },
-
     module: {
-      strictExportPresence: true,
+      parser: {
+        javascript: {
+          exportsPresence: 'error',
+        },
+      },
       rules: [
-        // Disable require.ensure as it's not a standard language feature.
-        { parser: { requireEnsure: false } },
         {
           // oneOf lets us have a loader w/o a test as a default instead of applying to everything
           // https://webpack.js.org/configuration/module/#ruleoneof

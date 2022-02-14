@@ -1,4 +1,3 @@
-import path from 'path'
 import tty from 'tty'
 import util from 'util'
 import webpack from 'webpack'
@@ -10,13 +9,11 @@ import HtmlWebpackPlugin from 'html-webpack-plugin'
 import ModuleNotFoundPlugin from 'react-dev-utils/ModuleNotFoundPlugin.js'
 import WatchMissingNodeModulesPlugin from 'react-dev-utils/WatchMissingNodeModulesPlugin.js'
 import CleanTerminalPlugin from 'clean-terminal-webpack-plugin'
+import ReactRefreshWebpackPlugin from '@pmmmwh/react-refresh-webpack-plugin'
 
 import postcssPresetEnv from 'postcss-preset-env'
 import paths from './paths.cjs'
 import env from './env.js'
-// import { createRequire } from 'module'
-// const require = createRequire(import.meta.url)
-// const appPackageJson = require(paths.appPackageJson)
 
 const imageInlineSizeLimit = parseInt(process.env.IMAGE_INLINE_SIZE_LIMIT, 10) || 8192
 
@@ -38,8 +35,6 @@ export default ({
   let fontsToEmbed
 
   const theConfig = {
-    mode: 'development',
-    stats: 'minimal',
     devServer: {
       host,
       port,
@@ -91,16 +86,17 @@ export default ({
         },
       ].filter(Boolean),
     },
+    mode: 'development',
+    stats: 'minimal',
     bail: true,
     devtool: 'eval-source-map',
 
-    // These are the "entry points" to our application.
-    // This means they will be the "root" imports that are included in JS bundle.
     entry: [
       paths.appIndexJs,
     ],
 
     output: {
+      // The build folder.
       path: paths.appBuild,
       publicPath: publicPath,
     },
@@ -123,7 +119,11 @@ export default ({
     },
 
     module: {
-      strictExportPresence: true,
+      parser: {
+        javascript: {
+          exportsPresence: 'error',
+        },
+      },
       rules: [
         {
           // oneOf lets us have a loader w/o a test as a default instead of applying to everything
@@ -150,36 +150,7 @@ export default ({
                   cacheDirectory: true,
                   cacheCompression: false,
 
-                  // 'react-refresh/babel' plugin could be added here in future
-                },
-              },
-            },
-
-            // Process any JS outside of the app with Babel.
-            {
-              test: /\.(js|mjs)$/,
-              include: [
-                // for @patternfly/react-console
-                '@novnc/novnc',
-                '@spice-project/spice-html5',
-              ].map(dependency => path.resolve(paths.appNodeModules, dependency)),
-              use: {
-                loader: 'babel-loader',
-                options: {
-                  babelrc: false,
-                  configFile: false,
-                  compact: false,
-
-                  presets: ['./config/babel.dep.config.js'],
-
-                  cacheDirectory: true,
-                  cacheCompression: false,
-
-                  // Babel sourcemaps are needed for debugging into node_modules
-                  // code.  Without the options below, debuggers like VSCode
-                  // show incorrect code and set breakpoints on the wrong lines.
-                  sourceMaps: true,
-                  inputSourceMap: true,
+                  plugins: ['react-refresh/babel', paths.appFancyConsole],
                 },
               },
             },
@@ -382,6 +353,8 @@ export default ({
       }),
 
       new ESLintPlugin(),
+
+      new ReactRefreshWebpackPlugin(),
     ],
   }
 

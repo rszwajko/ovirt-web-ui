@@ -10,10 +10,11 @@ import util from 'util'
  */
 export default function (api, opts = {}) {
   const env = process.env.BABEL_ENV || process.env.NODE_ENV
-  const verbose = process.env.V === '1'
+  const verbose = true // process.env.V === '1'
   const isEnvDevelopment = env === 'development'
   const isEnvProduction = env === 'production'
   const isEnvTest = env === 'test' // for jest running tests on nodejs
+  console.error('hello world!')
 
   const babelConfig = {
     // Babel assumes ES Modules, which isn't safe until CommonJS
