@@ -4,6 +4,7 @@ import {
   Card,
   CardBody,
   CardTitle,
+  Form,
   FormGroup,
   Hint,
   HintBody,
@@ -12,8 +13,8 @@ import { InfoTooltip } from '_/components/tooltips'
 
 import style from './style.css'
 
-const Section = ({ name, section, className }) => (
-  <Card className={className}>
+const Section = ({ name, section }) => (
+  <Card className={style['main-content']}>
     <CardTitle>
       <a id={name} />
       {section.title}
@@ -27,16 +28,18 @@ const Section = ({ name, section, className }) => (
       </CardBody>
     )}
     { section.fields.map((field) => (
-      <CardBody key={field.key}>
+      <CardBody key={field.key} className={style['settings-field']}>
         {
         field.title && (
-          <FormGroup
-            label={field.title}
-            labelIcon={field.tooltip && <InfoTooltip tooltip={field.tooltip} id={`${name}-${field.key}-info-tooltip`} /> }
-            fieldId={field.fieldId}
-          >
-            {field.body}
-          </FormGroup>
+          <Form isWidthLimited={!field.fullSize}>
+            <FormGroup
+              label={field.title}
+              labelIcon={field.tooltip && <InfoTooltip tooltip={field.tooltip} id={`${name}-${field.key}-info-tooltip`} /> }
+              fieldId={field.fieldId}
+            >
+              {field.body}
+            </FormGroup>
+          </Form>
         )}
 
         {!field.title && field.body}
@@ -50,7 +53,6 @@ const Section = ({ name, section, className }) => (
 Section.propTypes = {
   name: PropTypes.string.isRequired,
   section: PropTypes.object.isRequired,
-  className: PropTypes.string,
 }
 
 const SettingsBase = ({ name, section }) => {
@@ -58,7 +60,7 @@ const SettingsBase = ({ name, section }) => {
   return (
     <div className={style['search-content-box']}>
       { sections.map(([name, section]) => (
-        <Section key={name} name={name} section={section} className={style['main-content']}/>
+        <Section key={name} name={name} section={section}/>
       )
       )}
     </div>
