@@ -406,7 +406,7 @@ export const messages: { [messageId: string]: MessageType } = {
   'doing a hot plug.  You can choose to apply these changes after a restart instead.',
   hotPlugConfirmTitle: 'Apply Changes',
   htmlPleaseReferToDocumentationForMoreInformation: 'Please refer to <a href="{documentationUrl}" target="_blank">documentation</a> for more information.',
-  htmlUnsupportedOvirtVersionFoundButVersionAtLeastRequired: '<strong>Unsupported {version} {productName} version</strong> found, but at least version {requiredVersion} is required.',
+  htmlUnsupportedOvirtVersionFoundButVersionAtLeastRequired: 'Unsupported {version} {productName} version found, but at least version {requiredVersion} is required.',
   icon: 'Icon',
   ifVmIsRunningClickToAccessItsGraphicsConsole: 'If the virtual machine is running, click the protocol name to access its Graphical Console.',
   info: 'Information',

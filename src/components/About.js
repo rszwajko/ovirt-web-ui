@@ -63,8 +63,8 @@ const AboutDialog = ({ closeDialog, isOpen, oVirtApiVersion, msg }) => {
     >
 
       <h1 id={`${idPrefix}-title`}>{title}</h1>
-      <div className='product-versions-pf'>
-        <ul className='list-unstyled'>
+      <div>
+        <ul>
           <li id={`${idPrefix}-version`}>
             <div dangerouslySetInnerHTML={{ __html: webUiVersionText }} />
           </li>
