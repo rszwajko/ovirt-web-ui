@@ -12,7 +12,12 @@ import VmActions from '../VmActions'
 import VmConsoleSelector from '../VmConsole/VmConsoleSelector'
 import VmConsoleInstructionsModal from '../VmConsole/VmConsoleInstructionsModal'
 import VmsListToolbar from './VmsListToolbar'
+import {
+  EventFilters,
+  EventSort,
+} from '../Events'
 import { NATIVE_VNC, SPICE } from '_/constants'
+import { saveEventFilters } from '_/actions'
 
 const VmDetailToolbar = ({ match, vms }) => {
   if (vms.getIn(['vms', match.params.id])) {
@@ -42,6 +47,36 @@ const VmDetailToolbarConnected = connect(
     vms: state.vms,
   })
 )(VmDetailToolbar)
+
+const EventsToolbar = ({ match, vms, onClearFilters }) => {
+  if (!vms.getIn(['vms', match?.params?.id])) {
+    return null
+  }
+  return (
+    <Toolbar className='portaled-toolbars-padding' clearAllFilters={onClearFilters}>
+      <ToolbarContent >
+        <EventFilters/>
+        <EventSort />
+      </ToolbarContent>
+    </Toolbar>
+  )
+}
+
+EventsToolbar.propTypes = {
+  vms: PropTypes.object.isRequired,
+  onClearFilters: PropTypes.func.isRequired,
+
+  match: RouterPropTypeShapes.match.isRequired,
+}
+
+const EventsToolbarConnected = connect(
+  (state) => ({
+    vms: state.vms,
+  }),
+  (dispatch) => ({
+    onClearFilters: () => dispatch(saveEventFilters({ filters: {} })),
+  })
+)(EventsToolbar)
 
 const VmConsoleToolbar = ({ match: { params: { id, consoleType } } = {}, vms }) => {
   if (!vms.getIn(['vms', id])) {
@@ -84,7 +119,11 @@ const SettingsToolbar = () => <div id='settings-toolbar' />
 
 export {
   VmDetailToolbarConnected as VmDetailToolbar,
+  EventsToolbarConnected as EventsToolbar,
   VmConsoleToolbarConnected as VmConsoleToolbar,
   VmsListToolbar,
   SettingsToolbar,
 }
+
+export { default as Sort } from './Sort'
+export { default as Filters } from './Filters'
