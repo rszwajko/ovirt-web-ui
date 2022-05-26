@@ -20,12 +20,14 @@ export function addVmSnapshot ({ vmId, snapshot }) {
   }
 }
 
-export function restoreVmSnapshot ({ vmId, snapshotId }) {
+export function restoreVmSnapshot ({ vmId, vmName, snapshotId, snapshotName }) {
   return {
     type: RESTORE_VM_SNAPSHOT,
     payload: {
       vmId,
       snapshotId,
+      vmName,
+      snapshotName,
     },
   }
 }
