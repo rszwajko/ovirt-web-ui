@@ -603,6 +603,7 @@ export const messages: { [messageId: string]: MessageType } = {
     message: 'Restore',
     description: 'Confirmation modal action button label for a Restore operation',
   },
+  restoredSnapshot: 'Finished restoring snapshot {snapshotName} of VM {vmName}',
   results: {
     message: '{total} Results',
     description: 'Number of filtered fetched VMs (including pools)',
